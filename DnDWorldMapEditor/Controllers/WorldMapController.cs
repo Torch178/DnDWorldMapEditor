@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -84,7 +85,7 @@ namespace DnDWorldMapEditor.Controllers
                 }
                 
                 worldMap.BackgroundImage = BackgroundImage.FileName;
-                Console.WriteLine(BackgroundImage.FileName);
+                
                 var imageFile = Path.Combine(_environment.WebRootPath, "images", "worldMaps", BackgroundImage.FileName);
                 using var fileStream = new FileStream(imageFile, FileMode.Create);
                 await BackgroundImage.CopyToAsync(fileStream);
@@ -108,7 +109,9 @@ namespace DnDWorldMapEditor.Controllers
             return View(worldMap);
         }
 
+        
         // GET: WorldMap/Edit/5
+        
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -127,19 +130,33 @@ namespace DnDWorldMapEditor.Controllers
         // POST: WorldMap/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [BindProperty]
+        [Display(Name = "Background Image")]
+        public IFormFile? UpdatedImage { get; set; }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,UserId,Name,Description,TotalRows,TotalColumns,BackgroundImage")] WorldMap worldMap)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,UserId,Name,Description,TotalRows,TotalColumns")] WorldMap worldMap)
         {
             if (id != worldMap.Id)
             {
                 return NotFound();
             }
 
+            ModelState.Remove("BackgroundImage");
             if (ModelState.IsValid)
             {
                 try
                 {
+                    if (UpdatedImage  != null)
+                    {
+                        var oldImage = Path.Combine(_environment.WebRootPath,"images", "worldMaps", worldMap.BackgroundImage);
+                        if (!System.IO.File.Exists(oldImage)) System.IO.File.Delete(oldImage);
+                        
+                        worldMap.BackgroundImage = UpdatedImage.FileName;
+                        var newImage = Path.Combine(_environment.WebRootPath, "images", "worldMaps", worldMap.BackgroundImage);
+                        using var fileStream = new FileStream(newImage, FileMode.Create);
+                        await UpdatedImage.CopyToAsync(fileStream);
+                    }
                     _context.Update(worldMap);
                     await _context.SaveChangesAsync();
                 }
@@ -186,7 +203,17 @@ namespace DnDWorldMapEditor.Controllers
             var worldMap = await _context.WorldMap.FindAsync(id);
             if (worldMap != null)
             {
+                var fileImage = Path.Combine(_environment.WebRootPath, "images", "worldMaps", worldMap.BackgroundImage);
+                //ToDo Recursively delete gridSpaces associated with WorldMap
+                int worldMapId = worldMap.Id;
+                var gridSpaces = _context.GridSpace.OrderBy(x => x.Id).ToList();
+                
                 _context.WorldMap.Remove(worldMap);
+
+                if (System.IO.File.Exists(fileImage))
+                {
+                    System.IO.File.Delete(fileImage);
+                }
             }
 
             await _context.SaveChangesAsync();
