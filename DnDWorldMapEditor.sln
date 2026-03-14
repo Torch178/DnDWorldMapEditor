@@ -2,6 +2,12 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DnDWorldMapEditor", "DnDWorldMapEditor\DnDWorldMapEditor.csproj", "{1F96B3BE-7B11-4FE3-A892-93870A9D6EFD}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{6DA09833-B55B-4E2F-B168-6DF57E4A6457}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DnDWorldMapEditor.Tests", "DnDWorldMapEditor.Tests\DnDWorldMapEditor.Tests.csproj", "{B4567F4A-CFC4-41EE-A908-6F814D54896C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{056DBACD-FCCA-4912-B903-1226C991D512}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +18,13 @@ Global
 		{1F96B3BE-7B11-4FE3-A892-93870A9D6EFD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1F96B3BE-7B11-4FE3-A892-93870A9D6EFD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1F96B3BE-7B11-4FE3-A892-93870A9D6EFD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B4567F4A-CFC4-41EE-A908-6F814D54896C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4567F4A-CFC4-41EE-A908-6F814D54896C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4567F4A-CFC4-41EE-A908-6F814D54896C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4567F4A-CFC4-41EE-A908-6F814D54896C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{1F96B3BE-7B11-4FE3-A892-93870A9D6EFD} = {6DA09833-B55B-4E2F-B168-6DF57E4A6457}
+		{B4567F4A-CFC4-41EE-A908-6F814D54896C} = {056DBACD-FCCA-4912-B903-1226C991D512}
 	EndGlobalSection
 EndGlobal

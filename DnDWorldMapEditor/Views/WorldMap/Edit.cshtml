@@ -10,9 +10,10 @@
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="Edit" enctype="multipart/formdata" method="post">
+        <form asp-action="Edit" enctype="multipart/form-data" method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="Id" />
+            
             <div class="form-group">
                 <label asp-for="UserId" class="control-label"></label>
                 <input asp-for="UserId" class="form-control" />
@@ -38,10 +39,7 @@
                 <input asp-for="TotalColumns" class="form-control" />
                 <span asp-validation-for="TotalColumns" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="BackgroundImage" class="control-label"></label>
-                <input   class="form-control" />
-            </div>
+            <input type="hidden" asp-for="BackgroundImage" value="@Model.BackgroundImage"/>
             <div class="form-group">
                 <label name="UpdatedImage" class="control-label"></label>
                 <input name="UpdatedImage" type="file" class="form-control" accept="image/png, image/jpg, image/jpeg, image/svg" />
