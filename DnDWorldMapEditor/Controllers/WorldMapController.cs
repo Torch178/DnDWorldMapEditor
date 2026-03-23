@@ -1,10 +1,18 @@
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Security.Claims;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using DnDWorldMapEditor.Data;
 using DnDWorldMapEditor.Models;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Serilog;
 
 namespace DnDWorldMapEditor.Controllers
 {
@@ -12,17 +20,30 @@ namespace DnDWorldMapEditor.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _environment;
+        private readonly ILogger<WorldMapController> _logger;
 
-        public WorldMapController(ApplicationDbContext context,  IWebHostEnvironment environment)
+        public WorldMapController(ApplicationDbContext context,  IWebHostEnvironment environment, ILogger<WorldMapController> logger)
         {
             _context = context;
             _environment = environment;
+            _logger = logger;
         }
 
         // GET: WorldMap
         public async Task<IActionResult> Index()
         {
-            return View(await _context.WorldMap.ToListAsync());
+            try
+            {
+                var worldMaps = await _context.WorldMap.ToListAsync();
+                _logger.LogInformation($"World Map Index Called, World Map Count: {worldMaps.Count}");
+                return View(worldMaps );
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+            }
+
+            return NotFound();
         }
 
         // GET: WorldMap/Details/5
@@ -89,16 +110,7 @@ namespace DnDWorldMapEditor.Controllers
                 _context.Add(worldMap);
                 await _context.SaveChangesAsync();
                 
-                int worldMapId = worldMap.Id;
-                for (int i = 0; i < worldMap.TotalRows; i++)
-                {
-                    for (int j = 0; j < worldMap.TotalColumns; j++)
-                    {
-                        GridSpace gridSpace = new GridSpace(worldMapId,  i, j);
-                        _context.GridSpace.Add(gridSpace);
-                        await _context.SaveChangesAsync();
-                    }
-                }
+                CreateGridSpaces(worldMap);
                 
                 return RedirectToAction(nameof(Index));
             }
@@ -107,7 +119,9 @@ namespace DnDWorldMapEditor.Controllers
 
         
         // GET: WorldMap/Edit/5
-        
+        //ToDo Create ViewModel for updating WorldMap Data, referencing _context model may be
+        //interfering with comparisons to old data for worldMap stored in the database. ViewModel might help to separate them as
+        //different objects for more accurate comparisons
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -120,6 +134,8 @@ namespace DnDWorldMapEditor.Controllers
             {
                 return NotFound();
             }
+            
+            
             return View(worldMap);
         }
 
@@ -160,7 +176,7 @@ namespace DnDWorldMapEditor.Controllers
                     Debug.Assert(oldMapData != null);
                     UpdateGridSpacesAfterMapEdit(oldMapData.TotalRows, oldMapData.TotalColumns, worldMap.TotalRows, worldMap.TotalColumns, id);
 
-                    _context.ChangeTracker.Clear();
+                    
                     _context.Update(worldMap);
                     await _context.SaveChangesAsync();
                 }
@@ -223,6 +239,11 @@ namespace DnDWorldMapEditor.Controllers
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
+        
+        
+        //---------------------------------------------------
+        //#HelperFunctions
+        //---------------------------------------------------
 
         private bool WorldMapExists(int id)
         {
@@ -336,6 +357,20 @@ namespace DnDWorldMapEditor.Controllers
             }
             
             
+        }
+
+        public async void CreateGridSpaces(WorldMap worldMap)
+        {
+            int worldMapId = worldMap.Id;
+            for (int i = 0; i < worldMap.TotalRows; i++)
+            {
+                for (int j = 0; j < worldMap.TotalColumns; j++)
+                {
+                    GridSpace gridSpace = new GridSpace(worldMapId,  i, j);
+                    _context.GridSpace.Add(gridSpace);
+                    await _context.SaveChangesAsync();
+                }
+            }
         }
 
         public async void AddGridSpaces(List<GridSpace> gridSpacesToAdd)

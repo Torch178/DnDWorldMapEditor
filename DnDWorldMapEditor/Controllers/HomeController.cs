@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using DnDWorldMapEditor.Models;
+using Microsoft.Extensions.Logging;
 
 namespace DnDWorldMapEditor.Controllers;
 
