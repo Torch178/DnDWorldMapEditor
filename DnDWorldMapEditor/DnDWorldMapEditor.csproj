@@ -9,9 +9,11 @@
 
     <ItemGroup>
         <None Update="app.db" CopyToOutputDirectory="PreserveNewest" ExcludeFromSingleFile="true"/>
+        <None Remove="Properties\PublishProfiles\site1.PublishSettings" />
     </ItemGroup>
 
     <ItemGroup>
+        <PackageReference Include="AzureToolkit" Version="2.5.0" />
         <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="9.0.8"/>
         <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.8"/>
         <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="9.0.8"/>
@@ -27,6 +29,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Folder Include="Properties\PublishProfiles\" />
       <Folder Include="wwwroot\images\worldMaps\" />
     </ItemGroup>
 
