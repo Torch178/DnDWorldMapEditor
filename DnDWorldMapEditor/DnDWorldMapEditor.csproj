@@ -8,7 +8,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <None Update="app.db" CopyToOutputDirectory="PreserveNewest" ExcludeFromSingleFile="true"/>
         <None Remove="Properties\PublishProfiles\site1.PublishSettings" />
     </ItemGroup>
 

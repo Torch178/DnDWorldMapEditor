@@ -1,5 +1,4 @@
-@using Microsoft.Extensions.Logging
-@model DnDWorldMapEditor.Models.WorldMap
+@model DnDWorldMapEditor.ViewModels.WorldMapCreateViewModel
 
 @{
     ViewData["Title"] = "Create";
@@ -24,14 +23,11 @@
                 <span asp-validation-for="Description" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="TotalRows" class="control-label"></label>
-                <input asp-for="TotalRows" class="form-control" />
-                <span asp-validation-for="TotalRows" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="TotalColumns" class="control-label"></label>
-                <input asp-for="TotalColumns" class="form-control" />
-                <span asp-validation-for="TotalColumns" class="text-danger"></span>
+                <label asp-for="MapSize" class="control-label"></label>
+                <select asp-for="MapSize" asp-items="Html.GetEnumSelectList<Constants.MapSize>()" class="form-control">
+                    <option value="">Select Map Size</option>
+                </select>
+                <span asp-validation-for="Description" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="BackgroundImage" class="control-label"></label>

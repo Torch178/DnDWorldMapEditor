@@ -1,0 +1,18 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Publish DnDWorldMapEditor to Azure" type="AzureWebAppDeploy">
+    <option name="appServicePlanName" value="asp-app-260323132714" />
+    <option name="appServicePlanResourceGroupName" value="rg-app-260323132714" />
+    <option name="openBrowser" value="true" />
+    <option name="operatingSystem" value="Windows" />
+    <option name="pricingSize" value="F1" />
+    <option name="pricingTier" value="Free" />
+    <option name="projectConfiguration" value="Release" />
+    <option name="projectPlatform" value="Any CPU" />
+    <option name="publishableProjectPath" value="$PROJECT_DIR$/DnDWorldMapEditor/DnDWorldMapEditor.csproj" />
+    <option name="region" value="centralus" />
+    <option name="resourceGroupName" value="rg-app-260323132714" />
+    <option name="subscriptionId" value="3ba87a52-df41-4164-b839-54cb84c511a7" />
+    <option name="webAppName" value="app-260323132714-DnDWorldMapEditor" />
+    <method v="2" />
+  </configuration>
+</component>

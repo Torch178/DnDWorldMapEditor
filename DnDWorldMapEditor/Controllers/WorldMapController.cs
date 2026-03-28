@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Security.Claims;
@@ -10,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using DnDWorldMapEditor.Data;
 using DnDWorldMapEditor.Models;
+using DnDWorldMapEditor.ViewModels;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Serilog;
@@ -35,7 +37,7 @@ namespace DnDWorldMapEditor.Controllers
             try
             {
                 var worldMaps = await _context.WorldMap.ToListAsync();
-                _logger.LogInformation($"World Map Index Called, World Map Count: {worldMaps.Count}");
+                _logger.LogInformation("World Map Index Called, World Map Count: {worldMaps.Count}", worldMaps.Count);
                 return View(worldMaps );
             }
             catch (Exception ex)
@@ -49,19 +51,32 @@ namespace DnDWorldMapEditor.Controllers
         // GET: WorldMap/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null)
+            try
             {
-                return NotFound();
+                _logger.LogInformation("Fetching WorldMap ");
+                if (id == null)
+                {
+                    _logger.LogError("WorldMap Details not found, id is null\nId: {id}", id);
+                    return NotFound();
+                }
+
+                var worldMap = await _context.WorldMap
+                    .FirstOrDefaultAsync(m => m.Id == id);
+                if (worldMap == null)
+                {
+                    _logger.LogError("WorldMap Details not found, id is null\nWorldMap: {wm}", worldMap);
+                    return NotFound();
+                }
+                
+                return View(worldMap);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Exception Caught in WorldMap Details Get -> id:{id}\n{ex}",id ,ex.Message);
             }
 
-            var worldMap = await _context.WorldMap
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (worldMap == null)
-            {
-                return NotFound();
-            }
+            return NotFound();
 
-            return View(worldMap);
         }
 
         // GET: WorldMap/Create
@@ -74,70 +89,105 @@ namespace DnDWorldMapEditor.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         
-        [BindProperty]
-        [Required]
-        [Display(Name = "Background Image")]
-        public IFormFile BackgroundImage { get; set; }
+        // [BindProperty]
+        // [Required]
+        // [Display(Name = "Background Image")]
+        // public IFormFile BackgroundImage { get; set; }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,Description,TotalRows,TotalColumns")] WorldMap worldMap)
+        public async Task<IActionResult> Create([Bind("Name,Description,MapSize,BackgroundImage")] WorldMapCreateViewModel worldMapVm)
         {
-            ModelState.Remove("BackgroundImage");
+            
             if (ModelState.IsValid)
             {
+                WorldMap newWorldMap = new WorldMap
+                {
+                    Name = worldMapVm.Name,
+                    Description = worldMapVm.Description,
+                    TotalRows = 5,
+                    TotalColumns = 5,
+                    MapSize = worldMapVm.MapSize,
+                    BackgroundImage = string.Empty,
+                };
+                
                 if (User.Identity is { IsAuthenticated: true })
                 {
                     var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                    worldMap.UserId = userId;
+                    newWorldMap.UserId = userId;
                 }
                 else
                 {
                     return RedirectToPage("/Identity/Account/Login/");
                 }
 
-                if (worldMap.TotalColumns * worldMap.TotalRows > Constants.MAX_GRID_SIZE)
-                {
-                    return RedirectToAction(nameof(Index));
-                }
+                
+                string newFileName = GenerateUniqueFileName(worldMapVm.BackgroundImage.FileName);
+                
+                
+                var imageFile = Path.Combine(_environment.WebRootPath, "images", "newWorldMaps", newFileName);
+                await using var fileStream = new FileStream(imageFile, FileMode.Create);
+                await worldMapVm.BackgroundImage.CopyToAsync(fileStream);
+                
+                newWorldMap.BackgroundImage = newFileName;
 
-                string newFileName = GenerateUniqueFileName(BackgroundImage.FileName);
-                worldMap.BackgroundImage = newFileName;
+                switch (newWorldMap.MapSize)
+                {
+                    case "Small":
+                        newWorldMap.TotalRows = 5;
+                        newWorldMap.TotalColumns = 5;
+                        break;
+                    case "Medium":
+                        newWorldMap.TotalRows = 7;
+                        newWorldMap.TotalColumns = 7;
+                        break;
+                    case "Large":
+                        newWorldMap.TotalRows = 10;
+                        newWorldMap.TotalColumns = 10;
+                        break;
+                }
                 
-                var imageFile = Path.Combine(_environment.WebRootPath, "images", "worldMaps", newFileName);
-                using var fileStream = new FileStream(imageFile, FileMode.Create);
-                await BackgroundImage.CopyToAsync(fileStream);
-                
-                _context.Add(worldMap);
+                _context.Add(newWorldMap);
                 await _context.SaveChangesAsync();
                 
-                CreateGridSpaces(worldMap);
+                CreateGridSpaces(newWorldMap);
                 
                 return RedirectToAction(nameof(Index));
             }
-            return View(worldMap);
+            return View(worldMapVm);
         }
 
         
-        // GET: WorldMap/Edit/5
-        //ToDo Create ViewModel for updating WorldMap Data, referencing _context model may be
-        //interfering with comparisons to old data for worldMap stored in the database. ViewModel might help to separate them as
-        //different objects for more accurate comparisons
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var worldMap = await _context.WorldMap.FindAsync(id);
-            if (worldMap == null)
-            {
-                return NotFound();
-            }
-            
-            
-            return View(worldMap);
-        }
+        // // GET: WorldMap/Edit/5
+        // //ToDo Create ViewModel for updating WorldMap Data, referencing _context model may be
+        // //interfering with comparisons to old data for worldMap stored in the database. ViewModel might help to separate them as
+        // //different objects for more accurate comparisons
+        // [BindProperty]
+        // public WorldMapCreateViewModel ViewModel { get; set; }
+        // public async Task<IActionResult> Edit(int? id)
+        // {
+        //     if (id == null)
+        //     {
+        //         return NotFound();
+        //     }
+        //
+        //     var worldMap = await _context.WorldMap.FindAsync(id);
+        //     ViewModel = new WorldMapViewModel()
+        //     {
+        //         Name = worldMap.Name,
+        //         Description = worldMap.Description,
+        //         MapSize = worldMap.MapSize,
+        //         BackgroundImage = null,
+        //         
+        //     };
+        //     
+        //     if (worldMap == null)
+        //     {
+        //         return NotFound();
+        //     }
+        //     
+        //     
+        //     return View(worldMap);
+        // }
 
         // POST: WorldMap/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.

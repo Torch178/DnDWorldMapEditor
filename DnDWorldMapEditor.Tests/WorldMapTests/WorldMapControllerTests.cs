@@ -1,9 +1,11 @@
 using DnDWorldMapEditor.Controllers;
 using DnDWorldMapEditor.Data;
 using DnDWorldMapEditor.Models;
+using DnDWorldMapEditor.ViewModels;
 using FakeItEasy;
 using FluentAssertions;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -47,17 +49,16 @@ public class WorldMapControllerTests
         await _context.Database.EnsureDeletedAsync();
         await _context.Database.EnsureCreatedAsync();
         
-        Random rand = new Random();
-        int colNum = rand.Next(2,9);
-        int rowNum = rand.Next(2,9);
+        string MapSize = "Small";
         
         WorldMap wM = new WorldMap
         {
             UserId = Guid.NewGuid().ToString(),
             Name = "TestWorld",
             Description =  "TestWorld",
-            TotalRows = colNum,
-            TotalColumns = rowNum,
+            MapSize = "Small",
+            TotalRows = 5,
+            TotalColumns = 5,
             BackgroundImage = "test_image.jpg"
         };
         
@@ -88,6 +89,32 @@ public class WorldMapControllerTests
         //Assert
         result.Should().BeOfType<Task<IActionResult>>();
 
+    }
+
+    [Fact]
+    public async Task WorldMapController_Create_ReturnsSuccess()
+    {
+        //Arrange
+        await _context.Database.EnsureDeletedAsync();
+        await _context.Database.EnsureCreatedAsync();
+        var parentDir = Directory.GetParent(Directory.GetCurrentDirectory()).Name;
+        var filePath = Path.Combine(parentDir,"TestResources","Images","test_image.jpg");
+        IFormFile file = A.Fake<IFormFile>();
+        string oldFileName = file.FileName;
+        
+        WorldMapCreateViewModel newMap = new WorldMapCreateViewModel()
+        {
+            Name = "TestWorld",
+            Description = "TestWorld Description",
+            MapSize = "Small",
+            BackgroundImage = file
+        };
+
+        //Act
+        var results = await _worldMapController.Create(newMap);
+
+        //Assert
+        
     }
 
     [Fact]
@@ -130,81 +157,6 @@ public class WorldMapControllerTests
             gridSpace.Row.Should().BeInRange(0, wM.TotalRows - 1);
             gridSpace.Col.Should().BeInRange(0, wM.TotalColumns - 1);
         }
-    }
-    [Fact]
-    public async Task WorldMapController_Edit_ColNumDecrease_ReturnsUpdatedGridSpaces()
-    {
-        //Arrange
-        await _context.Database.EnsureDeletedAsync();
-        await _context.Database.EnsureCreatedAsync();
-        
-        //Act
-        
-        //Assert
-    }[Fact]
-    public async Task WorldMapController_Edit_RowNumIncrease_ReturnsUpdatedGridSpaces()
-    {
-        //Arrange
-        await _context.Database.EnsureDeletedAsync();
-        await _context.Database.EnsureCreatedAsync();
-        
-        //Act
-        
-        //Assert
-    }[Fact]
-    public async Task WorldMapController_Edit_RowNumDecrease_ReturnsUpdatedGridSpaces()
-    {
-        //Arrange
-        await _context.Database.EnsureDeletedAsync();
-        await _context.Database.EnsureCreatedAsync();
-        
-        //Act
-        
-        //Assert
-    }
-    [Fact]
-    public async Task WorldMapController_Edit_ColumnNumIncrease_AND_RowNumIncrease_ReturnsUpdatedGridSpaces()
-    {
-        //Arrange
-        await _context.Database.EnsureDeletedAsync();
-        await _context.Database.EnsureCreatedAsync();
-        
-        //Act
-        
-        //Assert
-    }
-    [Fact]
-    public async Task WorldMapController_Edit_ColumnNumDecrease_AND_RowNumDecrease_ReturnsUpdatedGridSpaces()
-    {
-        //Arrange
-        await _context.Database.EnsureDeletedAsync();
-        await _context.Database.EnsureCreatedAsync();
-        
-        //Act
-        
-        //Assert
-    }
-    [Fact]
-    public async Task WorldMapController_Edit_ColumnNumDecrease_AND_RowNumIncrease_ReturnsUpdatedGridSpaces()
-    {
-        //Arrange
-        await _context.Database.EnsureDeletedAsync();
-        await _context.Database.EnsureCreatedAsync();
-        
-        //Act
-        
-        //Assert
-    }
-    [Fact]
-    public async Task WorldMapController_Edit_ColumnNumIncrease_AND_RowNumDecrease_ReturnsUpdatedGridSpaces()
-    {
-        //Arrange
-        await _context.Database.EnsureDeletedAsync();
-        await _context.Database.EnsureCreatedAsync();
-        
-        //Act
-        
-        //Assert
     }
     
 }

@@ -27,4 +27,7 @@ Global
 		{1F96B3BE-7B11-4FE3-A892-93870A9D6EFD} = {6DA09833-B55B-4E2F-B168-6DF57E4A6457}
 		{B4567F4A-CFC4-41EE-A908-6F814D54896C} = {056DBACD-FCCA-4912-B903-1226C991D512}
 	EndGlobalSection
+	GlobalSection(RiderSharedRunConfigurations) = postSolution
+		File = DnDWorldMapEditor\Properties\PublishProfiles\Publish DnDWorldMapEditor to Azure.run.xml
+	EndGlobalSection
 EndGlobal
