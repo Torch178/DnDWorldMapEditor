@@ -1,20 +1,12 @@
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
-using System.Drawing;
-using System.IO;
-using System.Linq;
 using System.Security.Claims;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using DnDWorldMapEditor.Data;
 using DnDWorldMapEditor.Models;
 using DnDWorldMapEditor.ViewModels;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using Serilog;
+using Microsoft.IdentityModel.Tokens;
 
 namespace DnDWorldMapEditor.Controllers
 {
@@ -38,7 +30,7 @@ namespace DnDWorldMapEditor.Controllers
             {
                 var worldMaps = await _context.WorldMap.ToListAsync();
                 _logger.LogInformation("World Map Index Called, World Map Count: {worldMaps.Count}", worldMaps.Count);
-                return View(worldMaps );
+                return View(worldMaps);
             }
             catch (Exception ex)
             {
@@ -88,11 +80,6 @@ namespace DnDWorldMapEditor.Controllers
         // POST: WorldMap/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        
-        // [BindProperty]
-        // [Required]
-        // [Display(Name = "Background Image")]
-        // public IFormFile BackgroundImage { get; set; }
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Name,Description,MapSize,BackgroundImage")] WorldMapCreateViewModel worldMapVm)
@@ -109,6 +96,16 @@ namespace DnDWorldMapEditor.Controllers
                     MapSize = worldMapVm.MapSize,
                     BackgroundImage = string.Empty,
                 };
+
+                if (worldMapVm.BackgroundImage.Length == 0)
+                {
+                    return BadRequest("World Map Background Image cannot be an empty file");
+                }
+
+                if (worldMapVm.Name.IsNullOrEmpty())
+                {
+                    return BadRequest("World Map must have a name.");
+                }
                 
                 if (User.Identity is { IsAuthenticated: true })
                 {
@@ -124,7 +121,7 @@ namespace DnDWorldMapEditor.Controllers
                 string newFileName = GenerateUniqueFileName(worldMapVm.BackgroundImage.FileName);
                 
                 
-                var imageFile = Path.Combine(_environment.WebRootPath, "images", "newWorldMaps", newFileName);
+                var imageFile = Path.Combine(_environment.WebRootPath, "images", "worldMaps", newFileName);
                 await using var fileStream = new FileStream(imageFile, FileMode.Create);
                 await worldMapVm.BackgroundImage.CopyToAsync(fileStream);
                 
@@ -144,6 +141,8 @@ namespace DnDWorldMapEditor.Controllers
                         newWorldMap.TotalRows = 10;
                         newWorldMap.TotalColumns = 10;
                         break;
+                    default:
+                        return BadRequest("Invalid Map Size Format. Map Size must be Small, Medium, or Large.");
                 }
                 
                 _context.Add(newWorldMap);
@@ -153,7 +152,8 @@ namespace DnDWorldMapEditor.Controllers
                 
                 return RedirectToAction(nameof(Index));
             }
-            return View(worldMapVm);
+
+            return BadRequest(ModelState); 
         }
 
         

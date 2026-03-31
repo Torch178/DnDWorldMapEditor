@@ -24,6 +24,12 @@
     </ItemGroup>
 
     <ItemGroup>
+        <Content Include="..\DnDWorldMapEditor\wwwroot\images\**">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
+
+    <ItemGroup>
       <ProjectReference Include="..\DnDWorldMapEditor\DnDWorldMapEditor.csproj" />
     </ItemGroup>
 
