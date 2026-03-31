@@ -1,5 +1,4 @@
 using System;
-using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -11,7 +10,6 @@ using DnDWorldMapEditor.Data;
 using DnDWorldMapEditor.Models;
 using DnDWorldMapEditor.ViewModels;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using DnDWorldMapEditor.HelperFunctions;
@@ -162,87 +160,78 @@ namespace DnDWorldMapEditor.Controllers
 
         
         // // GET: WorldMap/Edit/5
-        // //ToDo Create ViewModel for updating WorldMap Data, referencing _context model may be
-        // //interfering with comparisons to old data for worldMap stored in the database. ViewModel might help to separate them as
-        // //different objects for more accurate comparisons
-        // [BindProperty]
-        // public WorldMapCreateViewModel ViewModel { get; set; }
-        // public async Task<IActionResult> Edit(int? id)
-        // {
-        //     if (id == null)
-        //     {
-        //         return NotFound();
-        //     }
-        //
-        //     var worldMap = await _context.WorldMap.FindAsync(id);
-        //     ViewModel = new WorldMapViewModel()
-        //     {
-        //         Name = worldMap.Name,
-        //         Description = worldMap.Description,
-        //         MapSize = worldMap.MapSize,
-        //         BackgroundImage = null,
-        //         
-        //     };
-        //     
-        //     if (worldMap == null)
-        //     {
-        //         return NotFound();
-        //     }
-        //     
-        //     
-        //     return View(worldMap);
-        // }
+        [BindProperty]
+        private WorldMapEditViewModel ViewModel { get; set; }
+        public async Task<IActionResult> Edit(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+        
+            var worldMap = await _context.WorldMap.FindAsync(id);
+            
+            if (worldMap == null)
+            {
+                return NotFound();
+            }
+            
+            ViewModel = new WorldMapEditViewModel()
+            {
+                Name = worldMap.Name,
+                Description = worldMap.Description,
+                OldImage = worldMap.BackgroundImage,
+                NewImage = null,
+            };
+            
+            return View(ViewModel);
+        }
 
         // POST: WorldMap/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [BindProperty]
-        [Display(Name = "Background Image")]
-        public IFormFile? UpdatedImage { get; }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,UserId,Name,Description,TotalRows,TotalColumns,BackgroundImage")] WorldMap worldMap)
+        public async Task<IActionResult> Edit(int id, [Bind("Name,Description,OldImage,NewImage")] WorldMapEditViewModel updatedMap)
         {
-            if (id != worldMap.Id)
+            WorldMap? worldMap = _context.WorldMap.FirstOrDefault(m => m.Id == id);
+            if (worldMap is null)
             {
                 return NotFound();
             }
-
-            ModelState.Remove("BackgroundImage");
+            
             if (ModelState.IsValid)
             {
                 try
                 {
-                    if (UpdatedImage is not null)
+                    if (updatedMap.NewImage is not null )
                     {
-                        string newFileName = FileFunctions.GenerateUniqueFileName(UpdatedImage.FileName);
-                        var oldPath = Path.Combine(_environment.WebRootPath,"images", "worldMaps", worldMap.BackgroundImage);
-                        var newPath = Path.Combine(_environment.WebRootPath, "images", "worldMaps", newFileName);
-                        worldMap.BackgroundImage = newFileName;
-
-                        if (System.IO.File.Exists(oldPath))
+                        if(updatedMap.NewImage.Length != 0)
                         {
-                            FileFunctions.ReplaceExistingImage(oldPath, newPath, UpdatedImage);
+                            string newFileName = FileFunctions.GenerateUniqueFileName(updatedMap.NewImage.FileName);
+                            var oldPath = Path.Combine(_environment.WebRootPath,"images", "worldMaps", worldMap.BackgroundImage);
+                            var newPath = Path.Combine(_environment.WebRootPath, "images", "worldMaps", newFileName);
+                            worldMap.BackgroundImage = newFileName;
+                            if (System.IO.File.Exists(oldPath))
+                            {
+                                FileFunctions.ReplaceExistingImage(oldPath, newPath, updatedMap.NewImage);
+                            }
+                        }
+                        else
+                        {
+                            return BadRequest("Error: New Background Image uploaded is empty.");
                         }
                     }
                     
-                    var oldMapData = await _context.WorldMap.FindAsync(id);
-                    Debug.Assert(oldMapData != null);
-                    GridSpaceFunctions.UpdateGridSpacesAfterMapEdit(_context, oldMapData.TotalRows, oldMapData.TotalColumns, worldMap.TotalRows, worldMap.TotalColumns, id);
+                    worldMap.Name = updatedMap.Name;
+                    worldMap.Description = updatedMap.Description;
                     
                     _context.Update(worldMap);
                     await _context.SaveChangesAsync();
                 }
-                catch (DbUpdateConcurrencyException)
+                catch (DbUpdateConcurrencyException ex)
                 {
-                    if (!WorldMapExists(worldMap.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    _logger.LogError(ex, ex.Message);
                 }
                 return RedirectToAction(nameof(Index));
             }
@@ -302,12 +291,5 @@ namespace DnDWorldMapEditor.Controllers
         {
             return _context.WorldMap.Any(e => e.Id == id);
         }
-
-        
-
-       
-
-        
-        
     }
 }

@@ -1,4 +1,4 @@
-@model DnDWorldMapEditor.Models.WorldMap
+@model DnDWorldMapEditor.ViewModels.WorldMapEditViewModel
 
 @{
     ViewData["Title"] = "Edit";
@@ -12,13 +12,7 @@
     <div class="col-md-4">
         <form asp-action="Edit" enctype="multipart/form-data" method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="Id" />
             
-            <div class="form-group">
-                <label asp-for="UserId" class="control-label"></label>
-                <input asp-for="UserId" class="form-control" />
-                <span asp-validation-for="UserId" class="text-danger"></span>
-            </div>
             <div class="form-group">
                 <label asp-for="Name" class="control-label"></label>
                 <input asp-for="Name" class="form-control" />
@@ -30,19 +24,9 @@
                 <span asp-validation-for="Description" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="TotalRows" class="control-label"></label>
-                <input asp-for="TotalRows" class="form-control" />
-                <span asp-validation-for="TotalRows" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="TotalColumns" class="control-label"></label>
-                <input asp-for="TotalColumns" class="form-control" />
-                <span asp-validation-for="TotalColumns" class="text-danger"></span>
-            </div>
-            <input type="hidden" asp-for="BackgroundImage" value="@Model.BackgroundImage"/>
-            <div class="form-group">
-                <label name="UpdatedImage" class="control-label"></label>
-                <input name="UpdatedImage" type="file" class="form-control" accept="image/png, image/jpg, image/jpeg, image/svg" />
+                <label asp-for="NewImage" class="control-label"></label>
+                <input asp-for="NewImage" type="file" class="form-control" accept="image/png, image/jpg, image/jpeg, image/svg" />
+                <span asp-validation-for="NewImage" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <input type="submit" value="Save" class="btn btn-primary" />
@@ -53,7 +37,7 @@
             Current Background Image
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.BackgroundImage)
+            @Html.DisplayFor(model => model.OldImage)
         </dd>
     </div>
 </div>
