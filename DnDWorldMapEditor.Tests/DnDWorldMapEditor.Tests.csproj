@@ -25,7 +25,7 @@
 
     <ItemGroup>
         <Content Include="..\DnDWorldMapEditor\wwwroot\images\**">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <CopyToOutputDirectory>Never</CopyToOutputDirectory>
         </Content>
     </ItemGroup>
 

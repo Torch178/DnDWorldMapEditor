@@ -1,12 +1,20 @@
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Security.Claims;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using DnDWorldMapEditor.Data;
 using DnDWorldMapEditor.Models;
 using DnDWorldMapEditor.ViewModels;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using DnDWorldMapEditor.HelperFunctions;
 
 namespace DnDWorldMapEditor.Controllers
 {
@@ -36,7 +44,6 @@ namespace DnDWorldMapEditor.Controllers
             {
                 _logger.LogError(ex, ex.Message);
             }
-
             return NotFound();
         }
 
@@ -66,7 +73,6 @@ namespace DnDWorldMapEditor.Controllers
             {
                 _logger.LogError("Exception Caught in WorldMap Details Get -> id:{id}\n{ex}",id ,ex.Message);
             }
-
             return NotFound();
 
         }
@@ -76,7 +82,7 @@ namespace DnDWorldMapEditor.Controllers
         {
             return View();
         }
-
+        
         // POST: WorldMap/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
@@ -87,8 +93,10 @@ namespace DnDWorldMapEditor.Controllers
             
             if (ModelState.IsValid)
             {
+                
                 WorldMap newWorldMap = new WorldMap
                 {
+                    
                     Name = worldMapVm.Name,
                     Description = worldMapVm.Description,
                     TotalRows = 5,
@@ -117,14 +125,10 @@ namespace DnDWorldMapEditor.Controllers
                     return RedirectToPage("/Identity/Account/Login/");
                 }
 
-                
-                string newFileName = GenerateUniqueFileName(worldMapVm.BackgroundImage.FileName);
-                
-                
+                string newFileName = FileFunctions.GenerateUniqueFileName(worldMapVm.BackgroundImage.FileName);
                 var imageFile = Path.Combine(_environment.WebRootPath, "images", "worldMaps", newFileName);
                 await using var fileStream = new FileStream(imageFile, FileMode.Create);
                 await worldMapVm.BackgroundImage.CopyToAsync(fileStream);
-                
                 newWorldMap.BackgroundImage = newFileName;
 
                 switch (newWorldMap.MapSize)
@@ -148,7 +152,7 @@ namespace DnDWorldMapEditor.Controllers
                 _context.Add(newWorldMap);
                 await _context.SaveChangesAsync();
                 
-                CreateGridSpaces(newWorldMap);
+                GridSpaceFunctions.CreateGridSpaces(_context, newWorldMap);
                 
                 return RedirectToAction(nameof(Index));
             }
@@ -194,7 +198,7 @@ namespace DnDWorldMapEditor.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [BindProperty]
         [Display(Name = "Background Image")]
-        public IFormFile? UpdatedImage { get; set; }
+        public IFormFile? UpdatedImage { get; }
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,UserId,Name,Description,TotalRows,TotalColumns,BackgroundImage")] WorldMap worldMap)
@@ -211,21 +215,20 @@ namespace DnDWorldMapEditor.Controllers
                 {
                     if (UpdatedImage is not null)
                     {
-                        string newFileName = GenerateUniqueFileName(UpdatedImage.FileName);
+                        string newFileName = FileFunctions.GenerateUniqueFileName(UpdatedImage.FileName);
                         var oldPath = Path.Combine(_environment.WebRootPath,"images", "worldMaps", worldMap.BackgroundImage);
                         var newPath = Path.Combine(_environment.WebRootPath, "images", "worldMaps", newFileName);
                         worldMap.BackgroundImage = newFileName;
 
                         if (System.IO.File.Exists(oldPath))
                         {
-                            ReplaceExistingImage(oldPath, newPath, UpdatedImage);
+                            FileFunctions.ReplaceExistingImage(oldPath, newPath, UpdatedImage);
                         }
                     }
                     
                     var oldMapData = await _context.WorldMap.FindAsync(id);
                     Debug.Assert(oldMapData != null);
-                    UpdateGridSpacesAfterMapEdit(oldMapData.TotalRows, oldMapData.TotalColumns, worldMap.TotalRows, worldMap.TotalColumns, id);
-
+                    GridSpaceFunctions.UpdateGridSpacesAfterMapEdit(_context, oldMapData.TotalRows, oldMapData.TotalColumns, worldMap.TotalRows, worldMap.TotalColumns, id);
                     
                     _context.Update(worldMap);
                     await _context.SaveChangesAsync();
@@ -276,7 +279,7 @@ namespace DnDWorldMapEditor.Controllers
                 var fileImage = Path.Combine(_environment.WebRootPath, "images", "worldMaps", worldMap.BackgroundImage);
                 
                 var gridSpaces = await _context.GridSpace.Where(x => x.WorldMapId == id).ToListAsync();
-                DeleteGridSpaces(gridSpaces);
+                GridSpaceFunctions.DeleteGridSpaces(_context, gridSpaces);
                 
                 _context.WorldMap.Remove(worldMap);
 
@@ -300,153 +303,11 @@ namespace DnDWorldMapEditor.Controllers
             return _context.WorldMap.Any(e => e.Id == id);
         }
 
-        private string GenerateUniqueFileName(string file)
-        {
-            string ext = Path.GetExtension(file);
-            string uniqueName = Guid.NewGuid().ToString();
-            string uniqueFileName = uniqueName + ext;
-            return uniqueFileName;
-        }
-
-        private async void UpdateGridSpacesAfterMapEdit(int oldRowsTotal, int oldColumnsTotal, int newRowsTotal, int newColumnsTotal, int worldMapId)
-        {
-            //ToDo Deleting gridSpaces when row/col count decreases doesn't work, FIX IT!
-            //When lowering the number of rows, and col, an extra row is leftover
-            int rowDiff = oldRowsTotal - newRowsTotal;
-            int columnDiff = oldColumnsTotal - newColumnsTotal;
-            bool rowIncrease = false;
-            bool columnIncrease = false;
-            bool rowDecrease = false;
-            bool columnDecrease = false;
-            var gridSpacesToDelete =  new List<GridSpace>();
-            var gridSpacesToAdd =  new List<GridSpace>();
-
-            if (rowDiff < 0) { rowIncrease = true; }
-            else if (rowDiff > 0) { rowDecrease = true; }
-            
-            if (columnDiff < 0) { columnIncrease = true; }
-            else if (columnDiff > 0) { columnDecrease = true; }
-            
-
-            //delete grid Spaces if col/rows decrease
-            if (columnDecrease)
-            {
-                var colSpaces = await _context.GridSpace.Where(x => 
-                    x.WorldMapId == worldMapId && 
-                    x.Col > (newColumnsTotal - 1)).ToListAsync();
-                foreach (var colSpace in colSpaces)
-                {
-                    gridSpacesToDelete.Add(colSpace);
-                }
-            }
-            if (rowDecrease)
-            {
-                var rowSpaces = await _context.GridSpace.Where(x => 
-                    x.WorldMapId == worldMapId && 
-                    x.Row > (newRowsTotal - 1)).ToListAsync();
-                foreach (var rowSpace in rowSpaces)
-                {
-                    gridSpacesToDelete.Add(rowSpace);
-                }
-            }
-
-            if (gridSpacesToDelete.Count > 0)
-            {
-                DeleteGridSpaces(gridSpacesToDelete);   
-            }
-
-            //add grid Spaces if col/rows increase
-            if (rowIncrease && columnIncrease)
-            {
-                for (int i = oldRowsTotal; i < newRowsTotal; i++)
-                {
-                    for (int j = 0; j < newColumnsTotal; j++)
-                    {
-                        GridSpace newSpace = new GridSpace(worldMapId, i, j);
-                        gridSpacesToAdd.Add(newSpace);
-                        
-                    }
-                }
-                for (int i = 0; i < oldRowsTotal; i++)
-                {
-                    for (int j = oldColumnsTotal; j < newColumnsTotal; j++)
-                    {
-                        GridSpace newSpace = new GridSpace(worldMapId, i, j);
-                        gridSpacesToAdd.Add(newSpace);
-                    }
-                }
-            }
-            else if (rowIncrease && !columnIncrease)
-            {
-                for (int i = oldRowsTotal; i < newRowsTotal; i++)
-                {
-                    for (int j = 0; j < newColumnsTotal; j++)
-                    {
-                        GridSpace newSpace = new GridSpace(worldMapId, i, j);
-                        gridSpacesToAdd.Add(newSpace);
-                        
-                    }
-                }
-            }
-            else if (columnIncrease && !rowIncrease)
-            {
-                for (int i = 0; i < newRowsTotal; i++)
-                {
-                    for (int j = oldColumnsTotal; j < newColumnsTotal; j++)
-                    {
-                        GridSpace newSpace = new GridSpace(worldMapId, i, j);
-                        gridSpacesToAdd.Add(newSpace);
-                        
-                    }
-                }
-            }
-
-            if (gridSpacesToAdd.Count > 0)
-            {
-                AddGridSpaces(gridSpacesToAdd);
-            }
-            
-            
-        }
-
-        public async void CreateGridSpaces(WorldMap worldMap)
-        {
-            int worldMapId = worldMap.Id;
-            for (int i = 0; i < worldMap.TotalRows; i++)
-            {
-                for (int j = 0; j < worldMap.TotalColumns; j++)
-                {
-                    GridSpace gridSpace = new GridSpace(worldMapId,  i, j);
-                    _context.GridSpace.Add(gridSpace);
-                    await _context.SaveChangesAsync();
-                }
-            }
-        }
-
-        public async void AddGridSpaces(List<GridSpace> gridSpacesToAdd)
-        {
-            foreach (var gridSpace in gridSpacesToAdd)
-            {
-                _context.GridSpace.Add(gridSpace);
-                await _context.SaveChangesAsync();
-            }
-        }
         
-        public async void DeleteGridSpaces(List<GridSpace> gridSpacesToDelete)
-        {
-            foreach (var gridSpace in gridSpacesToDelete)
-            {
-                _context.GridSpace.Remove(gridSpace);
-                await _context.SaveChangesAsync();
-            } 
-        }
 
-        public async void ReplaceExistingImage(string oldImagePath, string newImagePath , IFormFile newImage)
-        {
-            System.IO.File.Delete(oldImagePath);
-            using var fileStream = new FileStream(newImagePath, FileMode.Create);
-            await newImage.CopyToAsync(fileStream);
-        }
+       
+
+        
         
     }
 }
