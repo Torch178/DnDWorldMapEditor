@@ -569,9 +569,15 @@ public class WorldMapControllerCreateWorldMapTests
 
         //Act
         await worldMapController.Create(newMap);
+        WorldMap worldMap =  await context.WorldMap.FirstAsync();
 
         //Assert
         context.GridSpace.Count().Should().Be(25);
+        for (int i = 0; i < worldMap.TotalRows; i++)
+        {
+            context.GridSpace.Count(x => x.Row == i).Should().Be(5);
+            context.GridSpace.Count(x => x.Col == i).Should().Be(5);
+        }
 
         
         await context.Database.EnsureDeletedAsync();
@@ -601,9 +607,14 @@ public class WorldMapControllerCreateWorldMapTests
 
         //Act
         await worldMapController.Create(newMap);
-
+        WorldMap worldMap =  await context.WorldMap.FirstAsync();
         //Assert
         context.GridSpace.Count().Should().Be(49);
+        for (int i = 0; i < worldMap.TotalRows; i++)
+        {
+            context.GridSpace.Count(x => x.Row == i).Should().Be(7);
+            context.GridSpace.Count(x => x.Col == i).Should().Be(7);
+        }
 
         
         await context.Database.EnsureDeletedAsync();
@@ -634,12 +645,61 @@ public class WorldMapControllerCreateWorldMapTests
 
         //Act
         await worldMapController.Create(newMap);
+        WorldMap worldMap =  await context.WorldMap.FirstAsync();
 
         //Assert
         context.GridSpace.Count().Should().Be(100);
+        for (int i = 0; i < worldMap.TotalRows; i++)
+        {
+            context.GridSpace.Count(x => x.Row == i).Should().Be(10);
+            context.GridSpace.Count(x => x.Col == i).Should().Be(10);
+        }
         
         await context.Database.EnsureDeletedAsync();
         worldMapController.Dispose();
         
     }
+
+    [Fact]
+    public async Task WMC_WorldMapCreate_OpenDetailsView_AfterCreate_ReturnsView()
+    {
+        //Arrange
+        var environment = A.Fake<IWebHostEnvironment>();
+        var context = GetDbContext();
+        var logger = A.Fake<ILogger<WorldMapController>>();
+        var worldMapController = new WorldMapController(context, environment, logger);
+
+        await context.Database.EnsureDeletedAsync();
+        await context.Database.EnsureCreatedAsync();
+        worldMapController.ControllerContext = CreateMockUser();
+
+        IFormFile file = CreateMockFile("JPEG Test Image", "image/jpeg", "test.jpeg");
+
+        WorldMapCreateViewModel newMap = new WorldMapCreateViewModel()
+        {
+            Name = "Name",
+            Description = "TestWorld Description",
+            MapSize = "Small",
+            BackgroundImage = file
+        };
+
+        //Act
+        var results = await worldMapController.Create(newMap);
+        WorldMap worldMap =  await context.WorldMap.FirstAsync();
+        var results2 = await worldMapController.Details(worldMap.Id);
+
+        //Assert
+        results.Should().NotBeNull();
+        results.Should().BeOfType<RedirectToActionResult>();
+        worldMap.Should().NotBeNull();
+        
+        results2.Should().NotBeNull();
+        results2.Should().BeOfType<ViewResult>();
+        
+        
+        await context.Database.EnsureDeletedAsync();
+        worldMapController.Dispose();
+    }
+    
+    
 }

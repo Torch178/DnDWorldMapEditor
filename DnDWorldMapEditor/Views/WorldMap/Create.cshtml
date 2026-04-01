@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Create";
+    string[] sizes = ["Small", "Medium", "Large"];
 }
 
 <h1>Create</h1>
@@ -24,8 +25,13 @@
             </div>
             <div class="form-group">
                 <label asp-for="MapSize" class="control-label"></label>
-                <select asp-for="MapSize" asp-items="Html.GetEnumSelectList<Constants.MapSize>()" class="form-control">
+                <select asp-for="MapSize" class="form-control">
                     <option value="">Select Map Size</option>
+                    @foreach (var item in sizes)
+                    {
+                        <option value="@item">@item</option>
+                    }
+
                 </select>
                 <span asp-validation-for="Description" class="text-danger"></span>
             </div>

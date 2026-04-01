@@ -14,7 +14,7 @@ public class WorldMap
 
     public required int TotalRows { get; set; } = 5;
     public required int TotalColumns { get; set; } = 5;
-    [MaxLength(5)]
+    [MaxLength(6)]
     public required string MapSize { get; set; } = "Small";
     [MaxLength(450)]
     public required string BackgroundImage { get; set; } =  string.Empty;
