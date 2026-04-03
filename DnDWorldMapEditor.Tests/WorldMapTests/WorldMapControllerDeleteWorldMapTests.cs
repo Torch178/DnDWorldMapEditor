@@ -62,7 +62,7 @@ public class WorldMapControllerDeleteWorldMapTests
         var result = await worldMapController.DeleteConfirmed(wm.Id);
 
         //Assert
-        result.Should().BeOfType<ViewResult>();
+        result.Should().BeOfType<RedirectToActionResult>();
         
         await context.Database.EnsureDeletedAsync();
     }
@@ -127,14 +127,13 @@ public class WorldMapControllerDeleteWorldMapTests
         context.GridSpace.Count().Should().Be(98);
         var worldMap = await context.WorldMap.FirstAsync();
         int worldMapId = worldMap.Id;
-        var result = await worldMapController.DeleteConfirmed(worldMapId);
+        await worldMapController.DeleteConfirmed(worldMapId);
         var deletedWorldMap = await context.WorldMap.FindAsync(worldMapId);
         var deletedGridSpaces = await context.GridSpace.Where(x => x.WorldMapId == worldMapId).ToListAsync();
 
         //Assert
-        result.Should().BeOfType<Task<IActionResult>>();
         deletedWorldMap.Should().BeNull();
-        deletedGridSpaces.Should().BeNull();
+        deletedGridSpaces.Should().BeEmpty();
         context.WorldMap.Count().Should().Be(1);
         context.GridSpace.Count().Should().Be(49);
         
@@ -180,11 +179,10 @@ public class WorldMapControllerDeleteWorldMapTests
         var imageFilePath = Path.Combine(environment.WebRootPath, "images", "worldMaps", worldMap.BackgroundImage);
         File.Exists(imageFilePath).Should().BeTrue();
         
-        var result = await worldMapController.DeleteConfirmed(worldMapId);
+        await worldMapController.DeleteConfirmed(worldMapId);
         var deletedWorldMap = await context.WorldMap.FindAsync(worldMapId);
 
         //Assert
-        result.Should().BeOfType<Task<IActionResult>>();
         deletedWorldMap.Should().BeNull();
         File.Exists(imageFilePath).Should().BeFalse();
 

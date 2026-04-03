@@ -1,4 +1,3 @@
-
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -15,8 +14,9 @@ namespace DnDWorldMapEditor.Controllers
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _environment;
         private readonly ILogger<WorldMapController> _logger;
-        
-        public WorldMapController(ApplicationDbContext context,  IWebHostEnvironment environment, ILogger<WorldMapController> logger)
+
+        public WorldMapController(ApplicationDbContext context, IWebHostEnvironment environment,
+            ILogger<WorldMapController> logger)
         {
             _context = context;
             _environment = environment;
@@ -36,6 +36,7 @@ namespace DnDWorldMapEditor.Controllers
             {
                 _logger.LogError(ex, ex.Message);
             }
+
             return NotFound();
         }
 
@@ -58,15 +59,15 @@ namespace DnDWorldMapEditor.Controllers
                     _logger.LogError("WorldMap Details not found, id is null\nWorldMap: {wm}", worldMap);
                     return NotFound();
                 }
-                
+
                 return View(worldMap);
             }
             catch (Exception ex)
             {
-                _logger.LogError("Exception Caught in WorldMap Details Get -> id:{id}\n{ex}",id ,ex.Message);
+                _logger.LogError("Exception Caught in WorldMap Details Get -> id:{id}\n{ex}", id, ex.Message);
             }
-            return NotFound();
 
+            return NotFound();
         }
 
         // GET: WorldMap/Create
@@ -74,20 +75,20 @@ namespace DnDWorldMapEditor.Controllers
         {
             return View();
         }
-        
+
         // POST: WorldMap/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Name,Description,MapSize,BackgroundImage")] WorldMapCreateViewModel worldMapVm)
+        public async Task<IActionResult> Create(
+            [Bind("Name,Description,MapSize,BackgroundImage")] WorldMapCreateViewModel worldMapVm)
         {
             if (ModelState.IsValid)
             {
                 _logger.LogInformation("Creating WorldMap input: {0}", worldMapVm);
                 WorldMap newWorldMap = new WorldMap
                 {
-                    
                     Name = worldMapVm.Name,
                     Description = worldMapVm.Description,
                     TotalRows = 5,
@@ -105,7 +106,7 @@ namespace DnDWorldMapEditor.Controllers
                 {
                     return BadRequest("World Map must have a name.");
                 }
-                
+
                 if (User.Identity is { IsAuthenticated: true })
                 {
                     var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -139,38 +140,39 @@ namespace DnDWorldMapEditor.Controllers
                     default:
                         return BadRequest("Invalid Map Size Format. Map Size must be Small, Medium, or Large.");
                 }
-                
+
                 _context.Add(newWorldMap);
                 await _context.SaveChangesAsync();
-                
+
                 _logger.LogInformation("Created WorldMap: {0}", newWorldMap);
-                await CreateGridSpaces( newWorldMap);
+                await CreateGridSpaces(newWorldMap);
                 int gridSpaceCount = await _context.GridSpace.CountAsync(x => x.WorldMapId == newWorldMap.Id);
-                _logger.LogInformation("Created GridSpaces, Count: {0} for WorldMap: {1}", gridSpaceCount , newWorldMap.Id);
+                _logger.LogInformation("Created GridSpaces, Count: {0} for WorldMap: {1}", gridSpaceCount,
+                    newWorldMap.Id);
                 return RedirectToAction(nameof(Index));
             }
 
-            return BadRequest(ModelState); 
+            return BadRequest(ModelState);
         }
 
-        
+
         // // GET: WorldMap/Edit/5
-        [BindProperty]
-        private WorldMapEditViewModel ViewModel { get; set; }
+        [BindProperty] private WorldMapEditViewModel ViewModel { get; set; }
+
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
-        
+
             var worldMap = await _context.WorldMap.FindAsync(id);
-            
+
             if (worldMap == null)
             {
                 return NotFound();
             }
-            
+
             ViewModel = new WorldMapEditViewModel()
             {
                 Name = worldMap.Name,
@@ -178,23 +180,26 @@ namespace DnDWorldMapEditor.Controllers
                 OldImage = worldMap.BackgroundImage,
                 NewImage = null,
             };
-            
+
             return View(ViewModel);
         }
 
         public async Task<IActionResult> GetDetails(int row, int col, int worldMapId)
         {
-            var gridSpace = await _context.GridSpace.FirstOrDefaultAsync(x => x.Row == row  && x.Col == col && x.WorldMapId == worldMapId);
-            List<GridEncounter> gridEncounters = await _context.GridEncounter.Where(x => x.GridSpaceId == gridSpace.Id).ToListAsync();
-            List<GridCharacter> gridCharacters = await _context.GridCharacter.Where(x => x.GridSpaceId == gridSpace.Id).ToListAsync();
+            var gridSpace =
+                await _context.GridSpace.FirstOrDefaultAsync(x =>
+                    x.Row == row && x.Col == col && x.WorldMapId == worldMapId);
+            List<GridEncounter> gridEncounters =
+                await _context.GridEncounter.Where(x => x.GridSpaceId == gridSpace.Id).ToListAsync();
+            List<GridCharacter> gridCharacters =
+                await _context.GridCharacter.Where(x => x.GridSpaceId == gridSpace.Id).ToListAsync();
             GridSpaceDetailsViewModel model = new GridSpaceDetailsViewModel()
             {
                 gridSpace = gridSpace,
                 gridCharacters = gridCharacters,
                 gridEncounters = gridEncounters
-
             };
-            
+
             // Returns only the partial view content
             return PartialView("GridSpaceDataModal", model);
         }
@@ -204,24 +209,26 @@ namespace DnDWorldMapEditor.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Name,Description,OldImage,NewImage")] WorldMapEditViewModel updatedMap)
+        public async Task<IActionResult> Edit(int id,
+            [Bind("Name,Description,OldImage,NewImage")] WorldMapEditViewModel updatedMap)
         {
             WorldMap? worldMap = _context.WorldMap.FirstOrDefault(m => m.Id == id);
             if (worldMap is null)
             {
                 return NotFound();
             }
-            
+
             if (ModelState.IsValid)
             {
                 try
                 {
-                    if (updatedMap.NewImage is not null )
+                    if (updatedMap.NewImage is not null)
                     {
-                        if(updatedMap.NewImage.Length != 0)
+                        if (updatedMap.NewImage.Length != 0)
                         {
                             string newFileName = FileFunctions.GenerateUniqueFileName(updatedMap.NewImage.FileName);
-                            var oldPath = Path.Combine(_environment.WebRootPath,"images", "worldMaps", worldMap.BackgroundImage);
+                            var oldPath = Path.Combine(_environment.WebRootPath, "images", "worldMaps",
+                                worldMap.BackgroundImage);
                             var newPath = Path.Combine(_environment.WebRootPath, "images", "worldMaps", newFileName);
                             worldMap.BackgroundImage = newFileName;
                             if (System.IO.File.Exists(oldPath))
@@ -234,10 +241,10 @@ namespace DnDWorldMapEditor.Controllers
                             return BadRequest("Error: New Background Image uploaded is empty.");
                         }
                     }
-                    
+
                     worldMap.Name = updatedMap.Name;
                     worldMap.Description = updatedMap.Description;
-                    
+
                     _context.Update(worldMap);
                     await _context.SaveChangesAsync();
                 }
@@ -245,8 +252,10 @@ namespace DnDWorldMapEditor.Controllers
                 {
                     _logger.LogError(ex, ex.Message);
                 }
+
                 return RedirectToAction(nameof(Index));
             }
+
             return View(worldMap);
         }
 
@@ -274,15 +283,14 @@ namespace DnDWorldMapEditor.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            
             var worldMap = await _context.WorldMap.FindAsync(id);
             if (worldMap != null)
             {
                 var fileImage = Path.Combine(_environment.WebRootPath, "images", "worldMaps", worldMap.BackgroundImage);
-                
+
                 var gridSpaces = await _context.GridSpace.Where(x => x.WorldMapId == id).ToListAsync();
                 await DeleteGridSpaces(gridSpaces);
-                
+
                 _context.WorldMap.Remove(worldMap);
 
                 if (System.IO.File.Exists(fileImage))
@@ -292,44 +300,57 @@ namespace DnDWorldMapEditor.Controllers
             }
 
             await _context.SaveChangesAsync();
-            
-            //ToDo Make call to GridSpace Controller to DeleteGridSpace Objects
-            //RedirectToAction("GridSpace","");
 
-            
+
             return RedirectToAction(nameof(Index));
         }
-        
+
         public async Task CreateGridSpaces(WorldMap worldMap)
         {
-            
             int worldMapId = worldMap.Id;
             for (int i = 0; i < worldMap.TotalRows; i++)
             {
                 for (int j = 0; j < worldMap.TotalColumns; j++)
                 {
-                    GridSpace gridSpace = new GridSpace(worldMapId,  i, j);
+                    GridSpace gridSpace = new GridSpace(worldMapId, i, j);
                     _context.GridSpace.Add(gridSpace);
                     await _context.SaveChangesAsync();
                 }
             }
-
         }
-        
+
         public async Task DeleteGridSpaces(List<GridSpace> gridSpacesToDelete)
         {
             foreach (var gridSpace in gridSpacesToDelete)
             {
-                _context.GridSpace.Remove(gridSpace);
-                await _context.SaveChangesAsync();
-            } 
+                await DeleteGridSpace(gridSpace.Id);
+            }
         }
 
         public async Task DeleteGridSpace(int gridSpaceId)
         {
-            
-        }
+            GridSpace? gridSpace = await _context.GridSpace.FindAsync(gridSpaceId);
+            if (gridSpace != null)
+            {
+                _context.GridSpace.Remove(gridSpace);
+                await _context.SaveChangesAsync();
+                List<GridEncounter> gridEncounters =
+                    _context.GridEncounter.Where(x => x.GridSpaceId == gridSpaceId).ToList();
+                List<GridCharacter> gridCharacters =
+                    _context.GridCharacter.Where(x => x.GridSpaceId == gridSpaceId).ToList();
 
+                foreach (var encounter in gridEncounters)
+                {
+                    _context.GridEncounter.Remove(encounter);
+                    await _context.SaveChangesAsync();
+                }
+
+                foreach (var character in gridCharacters)
+                {
+                    _context.GridCharacter.Remove(character);
+                    await _context.SaveChangesAsync();
+                }
+            }
+        }
     }
-     
 }
