@@ -58,24 +58,8 @@ namespace DnDWorldMapEditor.Controllers
                     _logger.LogError("WorldMap Details not found, id is null\nWorldMap: {wm}", worldMap);
                     return NotFound();
                 }
-
-                var gridSpaces = _context.GridSpace.Where(x => x.WorldMapId == worldMap.Id).ToList();
-                List<GridEncounter> gridEncounters = new List<GridEncounter>();
-                List<GridCharacter> gridCharacters = new List<GridCharacter>();
-                foreach (var gridSpace in gridSpaces)
-                {
-                    gridEncounters.AddRange(_context.GridEncounter.Where(x => x.GridSpaceId == gridSpace.Id).ToList());
-                    gridCharacters.AddRange(_context.GridCharacter.Where(x => x.GridSpaceId == gridSpace.Id).ToList());
-                }
-                WorldMapDetailsViewModel viewModel = new WorldMapDetailsViewModel()
-                {
-                    WorldMap = worldMap,
-                    GridSpaces = gridSpaces,
-                    GridCharacters = gridCharacters,
-                    GridEncounters = gridEncounters,
-
-                };
-                return View(viewModel);
+                
+                return View(worldMap);
             }
             catch (Exception ex)
             {
@@ -198,6 +182,23 @@ namespace DnDWorldMapEditor.Controllers
             return View(ViewModel);
         }
 
+        public async Task<IActionResult> GetDetails(int row, int col, int worldMapId)
+        {
+            var gridSpace = await _context.GridSpace.FirstOrDefaultAsync(x => x.Row == row  && x.Col == col && x.WorldMapId == worldMapId);
+            List<GridEncounter> gridEncounters = await _context.GridEncounter.Where(x => x.GridSpaceId == gridSpace.Id).ToListAsync();
+            List<GridCharacter> gridCharacters = await _context.GridCharacter.Where(x => x.GridSpaceId == gridSpace.Id).ToListAsync();
+            GridSpaceDetailsViewModel model = new GridSpaceDetailsViewModel()
+            {
+                gridSpace = gridSpace,
+                gridCharacters = gridCharacters,
+                gridEncounters = gridEncounters
+
+            };
+            
+            // Returns only the partial view content
+            return PartialView("GridSpaceDataModal", model);
+        }
+
         // POST: WorldMap/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
@@ -273,6 +274,7 @@ namespace DnDWorldMapEditor.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            
             var worldMap = await _context.WorldMap.FindAsync(id);
             if (worldMap != null)
             {
@@ -290,6 +292,11 @@ namespace DnDWorldMapEditor.Controllers
             }
 
             await _context.SaveChangesAsync();
+            
+            //ToDo Make call to GridSpace Controller to DeleteGridSpace Objects
+            //RedirectToAction("GridSpace","");
+
+            
             return RedirectToAction(nameof(Index));
         }
         
@@ -316,6 +323,11 @@ namespace DnDWorldMapEditor.Controllers
                 _context.GridSpace.Remove(gridSpace);
                 await _context.SaveChangesAsync();
             } 
+        }
+
+        public async Task DeleteGridSpace(int gridSpaceId)
+        {
+            
         }
 
     }

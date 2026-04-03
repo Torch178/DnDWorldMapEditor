@@ -1,5 +1,3 @@
-using System.Security.Claims;
-using System.Text;
 using DnDWorldMapEditor.Controllers;
 using DnDWorldMapEditor.Data;
 using DnDWorldMapEditor.Models;
@@ -11,41 +9,13 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using static DnDWorldMapEditor.Tests.Functions.GeneratorFunctions;
 
 namespace DnDWorldMapEditor.Tests.WorldMapTests;
 
 [Collection("WorldMapTests")]
 public class WorldMapControllerEditWorldMapTests
 {
-
-    private ControllerContext CreateMockUser()
-    {
-        var claims = new List<Claim>
-        {
-            new Claim(ClaimTypes.NameIdentifier, "1"),
-            new Claim(ClaimTypes.Name, "testUser")
-        };
-        var identity = new ClaimsIdentity(claims, "TestAuthentication");
-        var claimsPrincipal = new ClaimsPrincipal(identity);
-        ControllerContext newContext = new ControllerContext
-        {
-            HttpContext = new DefaultHttpContext { User = claimsPrincipal }
-        };
-
-        return newContext;
-    }
-
-    private IFormFile CreateMockFile(string fileContent, string contentType, string fileName)
-    {
-        var content = Encoding.UTF8.GetBytes(fileContent);
-        IFormFile file = new FormFile(new MemoryStream(content), 0, content.Length, "test", fileName)
-        {
-            Headers = new HeaderDictionary(),
-            ContentType = contentType
-        };
-
-        return file;
-    }
 
     private ApplicationDbContext GetDbContext()
     {

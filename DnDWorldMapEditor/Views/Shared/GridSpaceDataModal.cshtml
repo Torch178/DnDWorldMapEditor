@@ -1,0 +1,15 @@
+@model DnDWorldMapEditor.ViewModels.GridSpaceDetailsViewModel
+
+<div class="modal-header">
+    <h5 class="modal-title">Item Details</h5>
+    <button type="button" class="close" data-bs-dismiss="modal" >&times;</button>
+</div>
+<div class="modal-body">
+    <p>Col: @Model.gridSpace.Col</p>
+    <p>Row: @Model.gridSpace.Row</p>
+    <p>WorldMapId: @Model.gridSpace.WorldMapId</p>
+    <!-- Add form fields here if needed -->
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+</div>

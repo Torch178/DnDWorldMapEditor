@@ -5,22 +5,23 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using DnDWorldMapEditor.Data;
 using DnDWorldMapEditor.Models;
+using DnDWorldMapEditor.ViewModels;
 
 namespace DnDWorldMapEditor.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class GridSpaceController : ControllerBase
+    
+    public class GridSpaceController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly ILogger<GridSpaceController> _logger;
 
-        public GridSpaceController(ApplicationDbContext context)
+        public GridSpaceController(ApplicationDbContext context, ILogger<GridSpaceController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         // GET: api/GridSpace
-        [HttpGet]
         public async Task<ActionResult<IEnumerable<GridSpace>>> GetGridSpace()
         {
             return await _context.GridSpace.ToListAsync();
@@ -40,35 +41,61 @@ namespace DnDWorldMapEditor.Controllers
             return gridSpace;
         }
 
-        // PUT: api/GridSpace/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutGridSpace(int id, GridSpace gridSpace)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, [Bind("History", "Description", "Notes", "Accessible")] GridSpaceEditDetailsViewModel updatedGridData)
         {
-            if (id != gridSpace.Id)
+            var gridSpace = await _context.GridSpace.FindAsync(id);
+            List<GridEncounter> gridEncounters = await _context.GridEncounter.Where(x => x.GridSpaceId == gridSpace.Id).ToListAsync();
+            List<GridCharacter> gridCharacters = await _context.GridCharacter.Where(x => x.GridSpaceId == gridSpace.Id).ToListAsync();
+            
+            GridSpaceDetailsViewModel model = new GridSpaceDetailsViewModel()
             {
-                return BadRequest();
-            }
+                gridSpace = gridSpace,
+                gridCharacters = gridCharacters,
+                gridEncounters = gridEncounters
 
-            _context.Entry(gridSpace).State = EntityState.Modified;
+            };
 
-            try
+            return PartialView("GridSpaceDataModal", model);
+
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddCharacterToGridSpace(int id, Character character)
+        {
+            var gridSpace = await _context.GridSpace.FindAsync(id);
+            List<GridEncounter> gridEncounters = await _context.GridEncounter.Where(x => x.GridSpaceId == gridSpace.Id).ToListAsync();
+            List<GridCharacter> gridCharacters = await _context.GridCharacter.Where(x => x.GridSpaceId == gridSpace.Id).ToListAsync();
+            
+            GridSpaceDetailsViewModel model = new GridSpaceDetailsViewModel()
             {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!GridSpaceExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+                gridSpace = gridSpace,
+                gridCharacters = gridCharacters,
+                gridEncounters = gridEncounters
 
-            return NoContent();
+            };
+
+            return PartialView("GridSpaceDataModal", model);
+        }
+        
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddEncounterToGridSpace(int id, Encounter encounter)
+        {
+            var gridSpace = await _context.GridSpace.FindAsync(id);
+            List<GridEncounter> gridEncounters = await _context.GridEncounter.Where(x => x.GridSpaceId == gridSpace.Id).ToListAsync();
+            List<GridCharacter> gridCharacters = await _context.GridCharacter.Where(x => x.GridSpaceId == gridSpace.Id).ToListAsync();
+            
+            GridSpaceDetailsViewModel model = new GridSpaceDetailsViewModel()
+            {
+                gridSpace = gridSpace,
+                gridCharacters = gridCharacters,
+                gridEncounters = gridEncounters
+            };
+
+            return PartialView("GridSpaceDataModal", model);
         }
 
         // POST: api/GridSpace
@@ -81,22 +108,7 @@ namespace DnDWorldMapEditor.Controllers
 
             return CreatedAtAction("GetGridSpace", new { id = gridSpace.Id }, gridSpace);
         }
-
-        // DELETE: api/GridSpace/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteGridSpace(int id)
-        {
-            var gridSpace = await _context.GridSpace.FindAsync(id);
-            if (gridSpace == null)
-            {
-                return NotFound();
-            }
-
-            _context.GridSpace.Remove(gridSpace);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
+        
 
         private bool GridSpaceExists(int id)
         {
