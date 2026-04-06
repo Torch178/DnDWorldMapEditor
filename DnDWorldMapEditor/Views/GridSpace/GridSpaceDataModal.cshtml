@@ -5,11 +5,18 @@
     <button type="button" class="close" data-bs-dismiss="modal" >&times;</button>
 </div>
 <div class="modal-body">
-    <p>Col: @Model.gridSpace.Col</p>
-    <p>Row: @Model.gridSpace.Row</p>
-    <p>WorldMapId: @Model.gridSpace.WorldMapId</p>
-    <!-- Add form fields here if needed -->
+    
 </div>
 <div class="modal-footer">
     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
 </div>
+
+<!-- Empty Modal Container -->
+<div id="myModal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content" id="modalContent">
+            <!-- Partial View content will be injected here -->
+        </div>
+    </div>
+</div>
+

@@ -1,0 +1,25 @@
+@model DnDWorldMapEditor.ViewModels.AddEncounterToGridForm
+
+<h4>Add Existing Encounter</h4>
+<hr/>
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="SelectedEncounter" class="control-label"></label>
+                <select asp-for="SelectedEncounter">
+                    <option>Select Encounter</option>
+                    @foreach (var encounter in @Model.Encounters)
+                    {
+                        <option value="@encounter">@encounter.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="AddEncounterToGridSpace" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
