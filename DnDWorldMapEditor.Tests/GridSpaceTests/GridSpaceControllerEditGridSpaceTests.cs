@@ -33,7 +33,8 @@ public class GridSpaceControllerEditGridSpaceTests
         //Arrange
         var context = GetDbContext();
         var logger = A.Fake<ILogger<GridSpaceController>>();
-        var gridSpaceController = new GridSpaceController(context, logger);
+        var environment = A.Fake<IWebHostEnvironment>();
+        var gridSpaceController = new GridSpaceController(context, environment, logger);
 
         await context.Database.EnsureDeletedAsync();
         await context.Database.EnsureCreatedAsync();
@@ -72,20 +73,13 @@ public class GridSpaceControllerEditGridSpaceTests
         //Arrange
         var context = GetDbContext();
         var logger = A.Fake<ILogger<GridSpaceController>>();
-        var gridSpaceController = new GridSpaceController(context, logger);
+        var environment = A.Fake<IWebHostEnvironment>();
+        var gridSpaceController = new GridSpaceController(context, environment, logger);
 
         await context.Database.EnsureDeletedAsync();
         await context.Database.EnsureCreatedAsync();
         gridSpaceController.ControllerContext = CreateMockUser();
-
-
-        List<GridSpace> gridSpaces = GenerateGridSpaces(1, 1);
-        await context.AddRangeAsync(gridSpaces);
-        await context.SaveChangesAsync();
-
-        GridSpace? gridSpace = await context.GridSpace.FirstOrDefaultAsync();
-        gridSpace.Should().NotBeNull();
-        int id = gridSpace.Id;
+        
 
         GridSpaceEditDetailsViewModel model = new GridSpaceEditDetailsViewModel()
         {
@@ -97,7 +91,7 @@ public class GridSpaceControllerEditGridSpaceTests
         
 
         //Act
-        var results = await gridSpaceController.Edit(id, model);
+        var results = await gridSpaceController.Edit(5, model);
         
         //Assert
         results.Should().BeOfType<NotFoundResult>();
@@ -111,7 +105,8 @@ public class GridSpaceControllerEditGridSpaceTests
         //Arrange
         var context = GetDbContext();
         var logger = A.Fake<ILogger<GridSpaceController>>();
-        var gridSpaceController = new GridSpaceController(context, logger);
+        var environment = A.Fake<IWebHostEnvironment>();
+        var gridSpaceController = new GridSpaceController(context, environment, logger);
 
         await context.Database.EnsureDeletedAsync();
         await context.Database.EnsureCreatedAsync();
@@ -153,7 +148,8 @@ public class GridSpaceControllerEditGridSpaceTests
         //Arrange
         var context = GetDbContext();
         var logger = A.Fake<ILogger<GridSpaceController>>();
-        var gridSpaceController = new GridSpaceController(context, logger);
+        var environment = A.Fake<IWebHostEnvironment>();
+        var gridSpaceController = new GridSpaceController(context, environment, logger);
 
         await context.Database.EnsureDeletedAsync();
         await context.Database.EnsureCreatedAsync();
@@ -194,7 +190,8 @@ public class GridSpaceControllerEditGridSpaceTests
         //Arrange
         var context = GetDbContext();
         var logger = A.Fake<ILogger<GridSpaceController>>();
-        var gridSpaceController = new GridSpaceController(context, logger);
+        var environment = A.Fake<IWebHostEnvironment>();
+        var gridSpaceController = new GridSpaceController(context, environment, logger);
 
         await context.Database.EnsureDeletedAsync();
         await context.Database.EnsureCreatedAsync();
@@ -235,7 +232,8 @@ public class GridSpaceControllerEditGridSpaceTests
         //Arrange
         var context = GetDbContext();
         var logger = A.Fake<ILogger<GridSpaceController>>();
-        var gridSpaceController = new GridSpaceController(context, logger);
+        var environment = A.Fake<IWebHostEnvironment>();
+        var gridSpaceController = new GridSpaceController(context, environment, logger);
 
         await context.Database.EnsureDeletedAsync();
         await context.Database.EnsureCreatedAsync();
@@ -276,7 +274,8 @@ public class GridSpaceControllerEditGridSpaceTests
         //Arrange
         var context = GetDbContext();
         var logger = A.Fake<ILogger<GridSpaceController>>();
-        var gridSpaceController = new GridSpaceController(context, logger);
+        var environment = A.Fake<IWebHostEnvironment>();
+        var gridSpaceController = new GridSpaceController(context, environment, logger);
 
         await context.Database.EnsureDeletedAsync();
         await context.Database.EnsureCreatedAsync();
@@ -310,7 +309,8 @@ public class GridSpaceControllerEditGridSpaceTests
         //Arrange
         var context = GetDbContext();
         var logger = A.Fake<ILogger<GridSpaceController>>();
-        var gridSpaceController = new GridSpaceController(context, logger);
+        var environment = A.Fake<IWebHostEnvironment>();
+        var gridSpaceController = new GridSpaceController(context, environment, logger);
 
         await context.Database.EnsureDeletedAsync();
         await context.Database.EnsureCreatedAsync();
@@ -345,7 +345,8 @@ public class GridSpaceControllerEditGridSpaceTests
         //Arrange
         var context = GetDbContext();
         var logger = A.Fake<ILogger<GridSpaceController>>();
-        var gridSpaceController = new GridSpaceController(context, logger);
+        var environment = A.Fake<IWebHostEnvironment>();
+        var gridSpaceController = new GridSpaceController(context, environment, logger);
 
         await context.Database.EnsureDeletedAsync();
         await context.Database.EnsureCreatedAsync();
@@ -380,7 +381,8 @@ public class GridSpaceControllerEditGridSpaceTests
         //Arrange
         var context = GetDbContext();
         var logger = A.Fake<ILogger<GridSpaceController>>();
-        var gridSpaceController = new GridSpaceController(context, logger);
+        var environment = A.Fake<IWebHostEnvironment>();
+        var gridSpaceController = new GridSpaceController(context, environment, logger);
 
         await context.Database.EnsureDeletedAsync();
         await context.Database.EnsureCreatedAsync();
@@ -414,7 +416,8 @@ public class GridSpaceControllerEditGridSpaceTests
         //Arrange
         var context = GetDbContext();
         var logger = A.Fake<ILogger<GridSpaceController>>();
-        var gridSpaceController = new GridSpaceController(context, logger);
+        var environment = A.Fake<IWebHostEnvironment>();
+        var gridSpaceController = new GridSpaceController(context, environment, logger);
 
         await context.Database.EnsureDeletedAsync();
         await context.Database.EnsureCreatedAsync();
@@ -449,7 +452,8 @@ public class GridSpaceControllerEditGridSpaceTests
         //Arrange
         var context = GetDbContext();
         var logger = A.Fake<ILogger<GridSpaceController>>();
-        var gridSpaceController = new GridSpaceController(context, logger);
+        var environment = A.Fake<IWebHostEnvironment>();
+        var gridSpaceController = new GridSpaceController(context, environment, logger);
 
         await context.Database.EnsureDeletedAsync();
         await context.Database.EnsureCreatedAsync();
@@ -477,4 +481,6 @@ public class GridSpaceControllerEditGridSpaceTests
         
         await context.Database.EnsureDeletedAsync();
     }
+    
+    
 }

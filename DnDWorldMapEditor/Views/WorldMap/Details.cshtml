@@ -105,7 +105,7 @@
 <script type="text/javascript">
     function loadPopup(row, col, id){
         $.ajax({
-            url: "/WorldMap/GetDetails",
+            url: "/GridSpace/GetGridSpaceDetails/",
             type: 'GET',
             data: {row: row, col: col, worldMapId: id},
             success: function(data){

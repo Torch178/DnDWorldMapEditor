@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using DnDWorldMapEditor.Data;
 using DnDWorldMapEditor.Models;
+using DnDWorldMapEditor.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 
 namespace DnDWorldMapEditor.Controllers
@@ -163,5 +164,17 @@ namespace DnDWorldMapEditor.Controllers
         {
             return _context.Encounter.Any(e => e.Id == id);
         }
+
+        public async Task<IActionResult> GetEncounter(int encounterId)
+        {
+            Encounter? encounter = await _context.Encounter.FindAsync(encounterId);
+
+            if (encounter == null) return NotFound();
+
+            return PartialView("EncounterCard", encounter);
+
+        }
+
+        
     }
 }

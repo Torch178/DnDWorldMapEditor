@@ -1,22 +1,100 @@
 @model DnDWorldMapEditor.ViewModels.GridSpaceDetailsViewModel
-
 <div class="modal-header">
     <h5 class="modal-title">Item Details</h5>
-    <button type="button" class="close" data-bs-dismiss="modal" >&times;</button>
+    <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
 </div>
+
+<ul class="nav nav-tabs" id="tabContent">
+    <li class="nav-item"><a class="nav-link" href="#details"  data-bs-toggle="tab">General</a></li>
+    <li class="nav-item"><a class="nav-link" href="#history" data-bs-toggle="tab">History</a></li>
+    <li class="nav-item"><a class="nav-link" href="#notes" data-bs-toggle="tab">Notes</a></li>
+    <li class="nav-item"><a class="nav-link" href="#encounters" data-bs-toggle="tab">Encounters</a></li>
+    <li class="nav-item"><a class="nav-link" href="#characters" data-bs-toggle="tab">Characters</a></li>
+</ul>
+  
+
+
 <div class="modal-body">
+    <div class="tab-content">
+        <div class="tab-pane active" id="details">
+            <h6>General Overview</h6>
+            <div class="card w-90">
+                <div class="card-body">
+                    <h5 class="card-title">Description</h5>
+                    <p class="card-text">@Model.GridSpace.Description</p>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">Row: @Model.GridSpace.Row</li>
+                    <li class="list-group-item">Column: @Model.GridSpace.Col</li>
+                    <li class="list-group-item">Encounters: @Model.GridEncounters.Count()</li>
+                    <li class="list-group-item">Characters: @Model.GridCharacters.Count()</li>
+                    <li class="list-group-item">Accessible: <label class="switch">
+                        <input type="checkbox">
+                        <span class="slider round"></span>
+                    </label></li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="tab-pane" id="history">
+            <h5 class="card-title">History</h5>
+            <div>@Model.GridSpace.History</div>
+        </div> 
+
+
+        <div class="tab-pane" id="notes">
+            <h5 class="card-title">History</h5>
+            <div>@Model.GridSpace.Notes</div>
+        </div> 
     
+        <div class="tab-pane" id="encounters">
+            <div class="container">
+                <div class="card-group">
+                    @foreach (var encounter in @Model.GridEncounters)
+                    {
+    
+                        <div class="card">
+                            @encounter.EncounterId
+                        </div>
+                    }
+                </div>
+                <form>
+                    <select class="form-control" id="encounterSelectionElement" required="required">
+                        <option value="">Select Encounter</option>
+                        @foreach (var encounter in @Model.Encounters)
+                        {
+                            <option value="@encounter.Id">@encounter.Name</option>
+                        }
+
+                    </select>
+    
+                    <button onclick="AddEncounter(@Model.GridSpace.Id)">Add Encounter</button>
+                </form>
+                
+            </div>
+        </div> 
+        <div class="tab-pane" id="characters">
+            content 1
+        </div> 
+    </div>
 </div>
 <div class="modal-footer">
     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
 </div>
 
-<!-- Empty Modal Container -->
-<div id="myModal" class="modal fade" role="dialog">
-    <div class="modal-dialog">
-        <div class="modal-content" id="modalContent">
-            <!-- Partial View content will be injected here -->
-        </div>
-    </div>
-</div>
-
+<script type="text/javascript">
+    function AddEncounter(id){
+        const encounterId =  $('#encounterSelectionElement').val();
+        $.ajax({
+            url: "/GridSpace/AddEncounterToGridSpace/",
+            type: 'POST',
+            data: {gridSpaceId: id, encounterId: encounterId},
+            success: function(data){
+                alert("Encounter added to Grid!");
+            },
+            error: function(){
+                alert("Error loading content.");
+            }
+        });
+    }
+</script>

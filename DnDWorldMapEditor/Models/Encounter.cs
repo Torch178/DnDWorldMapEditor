@@ -11,11 +11,15 @@ public class Encounter
     [MaxLength(450)]
     public string? UserId { get; set; }
     
-    [SetsRequiredMembers]
     public Encounter(string name, string description, string userId)
     {
         Name = name;
         Description = description;
         UserId = userId;
+    }
+
+    public Encounter()
+    {
+        
     }
 }

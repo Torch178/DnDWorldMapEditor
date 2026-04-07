@@ -82,7 +82,8 @@ namespace DnDWorldMapEditor.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(
-            [Bind("Name,Description,MapSize,BackgroundImage")] WorldMapCreateViewModel worldMapVm)
+            [Bind("Name,Description,MapSize,BackgroundImage")]
+            WorldMapCreateViewModel worldMapVm)
         {
             if (ModelState.IsValid)
             {
@@ -184,25 +185,6 @@ namespace DnDWorldMapEditor.Controllers
             return View(ViewModel);
         }
 
-        public async Task<IActionResult> GetDetails(int row, int col, int worldMapId)
-        {
-            var gridSpace =
-                await _context.GridSpace.FirstOrDefaultAsync(x =>
-                    x.Row == row && x.Col == col && x.WorldMapId == worldMapId);
-            List<GridEncounter> gridEncounters =
-                await _context.GridEncounter.Where(x => x.GridSpaceId == gridSpace.Id).ToListAsync();
-            List<GridCharacter> gridCharacters =
-                await _context.GridCharacter.Where(x => x.GridSpaceId == gridSpace.Id).ToListAsync();
-            GridSpaceDetailsViewModel model = new GridSpaceDetailsViewModel()
-            {
-                gridSpace = gridSpace,
-                gridCharacters = gridCharacters,
-                gridEncounters = gridEncounters
-            };
-
-            // Returns only the partial view content
-            return PartialView("GridSpaceDataModal", model);
-        }
 
         // POST: WorldMap/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
@@ -210,7 +192,8 @@ namespace DnDWorldMapEditor.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id,
-            [Bind("Name,Description,OldImage,NewImage")] WorldMapEditViewModel updatedMap)
+            [Bind("Name,Description,OldImage,NewImage")]
+            WorldMapEditViewModel updatedMap)
         {
             WorldMap? worldMap = _context.WorldMap.FirstOrDefault(m => m.Id == id);
             if (worldMap is null)
