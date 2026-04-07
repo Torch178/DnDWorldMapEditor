@@ -1,22 +1,35 @@
 @model DnDWorldMapEditor.ViewModels.GridSpaceDetailsViewModel
+@{
+    string accessibilityStatus = "";
+    if (@Model.GridSpace.Accessible)
+    {
+        accessibilityStatus = "checked";
+    }
+    else
+    {
+        accessibilityStatus = "";
+    }
+}
+
 <div class="modal-header">
     <h5 class="modal-title">Item Details</h5>
     <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
 </div>
 
 <ul class="nav nav-tabs" id="tabContent">
-    <li class="nav-item"><a class="nav-link" href="#details"  data-bs-toggle="tab">General</a></li>
+    <li class="nav-item"><a aria-selected="True" class="nav-link active" href="#details"
+                            data-bs-toggle="tab">General</a></li>
     <li class="nav-item"><a class="nav-link" href="#history" data-bs-toggle="tab">History</a></li>
     <li class="nav-item"><a class="nav-link" href="#notes" data-bs-toggle="tab">Notes</a></li>
     <li class="nav-item"><a class="nav-link" href="#encounters" data-bs-toggle="tab">Encounters</a></li>
     <li class="nav-item"><a class="nav-link" href="#characters" data-bs-toggle="tab">Characters</a></li>
 </ul>
-  
+
 
 
 <div class="modal-body">
     <div class="tab-content">
-        <div class="tab-pane active" id="details">
+        <div class="tab-pane active show" id="details">
             <h6>General Overview</h6>
             <div class="card w-90">
                 <div class="card-body">
@@ -29,30 +42,52 @@
                     <li class="list-group-item">Encounters: @Model.GridEncounters.Count()</li>
                     <li class="list-group-item">Characters: @Model.GridCharacters.Count()</li>
                     <li class="list-group-item">Accessible: <label class="switch">
-                        <input type="checkbox">
-                        <span class="slider round"></span>
-                    </label></li>
+                            <input onchange="UpdateAccessibility(@Model.GridSpace.Id)" type="checkbox"
+                                   checked="@Model.GridSpace.Accessible"/>
+                            <span class="slider round"></span>
+                        </label></li>
                 </ul>
             </div>
         </div>
-        
+
         <div class="tab-pane" id="history">
-            <h5 class="card-title">History</h5>
-            <div>@Model.GridSpace.History</div>
-        </div> 
+            <div class="card" id="GridSpaceHistoryCard">
+                <h5 class="card-title">History <button class="rounded"><img src="~/images/Icons/pencil-fill.svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-fill"/></button></h5>
+                <div class="card-body">@Model.GridSpace.History</div>
+                
+            </div>
+            
+            <form id="GridSpaceHistoryForm" class="">
+                <input type="text" id="GridSpaceHistoryInput" >
+                    @Model.GridSpace.History
+                </input>
+                    
+                <button onclick="UpdateHistory(@Model.GridSpace.Id)">Save</button>
+            </form>
+        </div>
 
 
         <div class="tab-pane" id="notes">
-            <h5 class="card-title">History</h5>
-            <div>@Model.GridSpace.Notes</div>
-        </div> 
-    
+            <div class="card" id="GridSpaceNotesCard">
+                <h5 class="card-title">Notes <button  class="rounded"><img src="~/images/Icons/pencil-fill.svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-fill"/></button></h5>
+                <div class="card-body">@Model.GridSpace.Notes</div>
+                
+            </div>
+            
+            <form id="GridSpaceNotesForm" class="">
+                <input type="text" id="GridSpaceNotesInput" >
+                    @Model.GridSpace.Notes
+                </input>
+                    
+                <button onclick="UpdateNotes(@Model.GridSpace.Id)">Save</button>
+            </form>
+        </div>
+
         <div class="tab-pane" id="encounters">
             <div class="container">
                 <div class="card-group">
                     @foreach (var encounter in @Model.GridEncounters)
                     {
-    
                         <div class="card">
                             @encounter.EncounterId
                         </div>
@@ -67,15 +102,37 @@
                         }
 
                     </select>
-    
+
                     <button onclick="AddEncounter(@Model.GridSpace.Id)">Add Encounter</button>
                 </form>
-                
+
             </div>
-        </div> 
+        </div>
         <div class="tab-pane" id="characters">
-            content 1
-        </div> 
+            <div class="container">
+                <div class="card-group">
+                    @foreach (var character in @Model.GridCharacters)
+                    {
+                        <div class="card">
+                            @character.CharacterId
+                        </div>
+                    }
+                </div>
+                <form>
+                    <select class="form-control" id="characterSelectionElement" required="required">
+                        <option value="">Select Character</option>
+                        @foreach (var character in @Model.Characters)
+                        {
+                            <option value="@character.Id">@character.Name</option>
+                        }
+
+                    </select>
+
+                    <button onclick="AddCharacter(@Model.GridSpace.Id)">Add Character</button>
+                </form>
+
+            </div>
+        </div>
     </div>
 </div>
 <div class="modal-footer">
@@ -83,18 +140,81 @@
 </div>
 
 <script type="text/javascript">
-    function AddEncounter(id){
-        const encounterId =  $('#encounterSelectionElement').val();
+    function AddEncounter(id) {
+        const encounterId = $('#encounterSelectionElement').val();
         $.ajax({
             url: "/GridSpace/AddEncounterToGridSpace/",
             type: 'POST',
             data: {gridSpaceId: id, encounterId: encounterId},
-            success: function(data){
+            success: function (data) {
                 alert("Encounter added to Grid!");
             },
-            error: function(){
+            error: function () {
                 alert("Error loading content.");
             }
         });
+    }
+
+    function AddCharacter(id) {
+        const characterId = $('#characterSelectionElement').val();
+        $.ajax({
+            url: "/GridSpace/AddCharacterToGridSpace/",
+            type: 'POST',
+            data: {gridSpaceId: id, characterId: characterId},
+            success: function (data) {
+                alert("Character added to Grid!");
+            },
+            error: function () {
+                alert("Error loading content.");
+            }
+        });
+    }
+
+    function UpdateAccessibility(id) {
+        $.ajax({
+            url: "/GridSpace/UpdateAccessibility/",
+            type: 'POST',
+            data: {gridSpaceId: id},
+            success: function (data) {
+                alert("Accessibility Updated!");
+            },
+            error: function () {
+                alert("Error loading content.");
+            }
+        });
+    }
+
+    function UpdateHistory(id) {
+        const updatedHistory = $('#GridSpaceHistoryInput').val();
+        $.ajax({
+            url: "/GridSpace/UpdateHistory/",
+            type: 'POST',
+            data: {gridSpaceId: id, updatedHistory: updatedHistory},
+            success: function (data) {
+                
+            },
+            error: function () {
+                alert("Error loading content.");
+            }
+        });
+        
+        
+    }
+
+    function UpdateNotes(id) {
+        const updatedNotes = $('#GridSpaceNotesInput').val();
+        $.ajax({
+            url: "/GridSpace/UpdateNotes/",
+            type: 'POST',
+            data: {gridSpaceId: id, updatedNotes: updatedNotes},
+            success: function (data) {
+                
+            },
+            error: function () {
+                alert("Error loading content.");
+            }
+        });
+
+
     }
 </script>

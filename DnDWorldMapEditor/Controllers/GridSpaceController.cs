@@ -44,20 +44,39 @@ namespace DnDWorldMapEditor.Controllers
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddCharacterToGridSpace(int id, Character character)
+        public async Task<IActionResult> AddCharacterToGridSpace(int gridSpaceId, int characterId)
         {
-            var gridSpace = await _context.GridSpace.FindAsync(id);
-            if (gridSpace == null)
+            _logger.LogInformation("Inside AddCharacterToGridSpace method - Character: {0}; GridSpace: {1}",characterId, gridSpaceId);
+            var gridSpace = await _context.GridSpace.FindAsync(gridSpaceId);
+            var character = await _context.Character.FindAsync(characterId);
+            if (gridSpace == null || character == null)
             {
                 return NotFound();
             }
+            
+            
+            if (User.Identity is { IsAuthenticated: true })
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (userId == null)
+                {
+                    return RedirectToPage("/Identity/Account/Login/");
+                }
+                
+                
+                GridCharacter newGridCharacter = new GridCharacter(gridSpaceId, character.Id);
+                _context.GridCharacter.Add(newGridCharacter);
+                await _context.SaveChangesAsync();
+                
+                _logger.LogInformation("Added Character: {1} to GridSpace: {0}",characterId, gridSpaceId);
 
-            GridCharacter newGridCharacter = new GridCharacter(id, character.Id);
-            _context.GridCharacter.Add(newGridCharacter);
-            await _context.SaveChangesAsync();
-
-            return await GetGridSpaceDetails(id, 3, 3);
+                return Ok();
+            }
+            else
+            {
+                return RedirectToPage("/Identity/Account/Login/");
+            }
+            
         }
 
         [HttpPost]
@@ -121,7 +140,54 @@ namespace DnDWorldMapEditor.Controllers
 
             return PartialView("GridSpaceDataModal", viewModel);
         }
+
+        public async Task<IActionResult> UpdateAccessibility(int gridSpaceId)
+        {
+            var gridSpace = await _context.GridSpace.FindAsync(gridSpaceId);
+            if (gridSpace == null)
+            {
+                return NotFound();
+            }
+
+            gridSpace.Accessible = !gridSpace.Accessible;
+
+            _context.GridSpace.Update(gridSpace);
+            await _context.SaveChangesAsync();
+
+            return Ok();
+        }
         
+        public async Task<IActionResult> UpdateHistory(int gridSpaceId, string updatedHistory)
+        {
+            var gridSpace = await _context.GridSpace.FindAsync(gridSpaceId);
+            if (gridSpace == null)
+            {
+                return NotFound();
+            }
+
+            gridSpace.History = updatedHistory;
+
+            _context.GridSpace.Update(gridSpace);
+            await _context.SaveChangesAsync();
+
+            return Ok();
+        }
+        
+        public async Task<IActionResult> UpdateNotes(int gridSpaceId, string updatedNotes)
+        {
+            var gridSpace = await _context.GridSpace.FindAsync(gridSpaceId);
+            if (gridSpace == null)
+            {
+                return NotFound();
+            }
+
+            gridSpace.Notes = updatedNotes;
+
+            _context.GridSpace.Update(gridSpace);
+            await _context.SaveChangesAsync();
+
+            return Ok();
+        }
         
         
         private bool GridSpaceExists(int id)
