@@ -1,14 +1,6 @@
 @model DnDWorldMapEditor.ViewModels.GridSpaceDetailsViewModel
 @{
     string accessibilityStatus = "";
-    if (@Model.GridSpace.Accessible)
-    {
-        accessibilityStatus = "checked";
-    }
-    else
-    {
-        accessibilityStatus = "";
-    }
 }
 
 <div class="modal-header">
@@ -52,16 +44,17 @@
 
         <div class="tab-pane" id="history">
             <div class="card" id="GridSpaceHistoryCard">
-                <h5 class="card-title">History <button class="rounded"><img src="~/images/Icons/pencil-fill.svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-fill"/></button></h5>
+                <h5 class="card-title">History
+                    <button class="rounded"><img src="~/images/Icons/pencil-fill.svg" width="16" height="16"
+                                                 fill="currentColor" class="bi bi-pencil-fill"/></button>
+                </h5>
                 <div class="card-body">@Model.GridSpace.History</div>
-                
+
             </div>
-            
+
             <form id="GridSpaceHistoryForm" class="">
-                <input type="text" id="GridSpaceHistoryInput" >
-                    @Model.GridSpace.History
-                </input>
-                    
+                <input value="@Model.GridSpace.History" type="text" id="GridSpaceHistoryInput">
+
                 <button onclick="UpdateHistory(@Model.GridSpace.Id)">Save</button>
             </form>
         </div>
@@ -69,16 +62,17 @@
 
         <div class="tab-pane" id="notes">
             <div class="card" id="GridSpaceNotesCard">
-                <h5 class="card-title">Notes <button  class="rounded"><img src="~/images/Icons/pencil-fill.svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-fill"/></button></h5>
+                <h5 class="card-title">Notes
+                    <button class="rounded"><img src="~/images/Icons/pencil-fill.svg" width="16" height="16"
+                                                 fill="currentColor" class="bi bi-pencil-fill"/></button>
+                </h5>
                 <div class="card-body">@Model.GridSpace.Notes</div>
-                
+
             </div>
-            
+
             <form id="GridSpaceNotesForm" class="">
-                <input type="text" id="GridSpaceNotesInput" >
-                    @Model.GridSpace.Notes
-                </input>
-                    
+                <input type="text" id="GridSpaceNotesInput" value="@Model.GridSpace.Notes">
+
                 <button onclick="UpdateNotes(@Model.GridSpace.Id)">Save</button>
             </form>
         </div>
@@ -88,8 +82,24 @@
                 <div class="card-group">
                     @foreach (var encounter in @Model.GridEncounters)
                     {
-                        <div class="card">
-                            @encounter.EncounterId
+                        <div class="card" style="width: 18rem;">
+                            <div class="card-body">
+                                <h5 class="card-title">@encounter.Item2.Name</h5>
+                                <p class="card-text">@encounter.Item2.Description</p>
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item">
+                                        Completed:
+                                        <label class="switch">
+                                            <input onchange="UpdateCompletedStatus(@encounter.Item1.Id)" type="checkbox"
+                                                   checked="@encounter.Item1.IsCompleted"/>
+                                            <span class="slider round"></span>
+                                        </label>
+                                    </li>
+                                </ul>
+
+                                <button onclick="RemoveGridEncounter(@encounter.Item1.Id)" class="card-link">Remove
+                                </button>
+                            </div>
                         </div>
                     }
                 </div>
@@ -102,7 +112,6 @@
                         }
 
                     </select>
-
                     <button onclick="AddEncounter(@Model.GridSpace.Id)">Add Encounter</button>
                 </form>
 
@@ -113,25 +122,31 @@
                 <div class="card-group">
                     @foreach (var character in @Model.GridCharacters)
                     {
-                        <div class="card">
-                            @character.CharacterId
+                        <div class="card" style="width: 18rem;">
+                            <div class="card-body">
+                                <h5 class="card-title">@character.Item2.Name</h5>
+                                <p class="card-text">@character.Item2.Description</p>
+
+                                <button onclick="RemoveGridCharacter(@character.Item1.Id)" class="card-link">Remove
+                                </button>
+                            </div>
                         </div>
                     }
                 </div>
-                <form>
-                    <select class="form-control" id="characterSelectionElement" required="required">
-                        <option value="">Select Character</option>
-                        @foreach (var character in @Model.Characters)
-                        {
-                            <option value="@character.Id">@character.Name</option>
-                        }
-
-                    </select>
-
-                    <button onclick="AddCharacter(@Model.GridSpace.Id)">Add Character</button>
-                </form>
-
             </div>
+            <form>
+                <select class="form-control" id="characterSelectionElement" required="required">
+                    <option value="">Select Character</option>
+                    @foreach (var character in @Model.Characters)
+                    {
+                        <option value="@character.Id">@character.Name</option>
+                    }
+
+                </select>
+
+                <button onclick="AddCharacter(@Model.GridSpace.Id)">Add Character</button>
+            </form>
+
         </div>
     </div>
 </div>
@@ -191,14 +206,14 @@
             type: 'POST',
             data: {gridSpaceId: id, updatedHistory: updatedHistory},
             success: function (data) {
-                
+
             },
             error: function () {
                 alert("Error loading content.");
             }
         });
-        
-        
+
+
     }
 
     function UpdateNotes(id) {
@@ -208,13 +223,55 @@
             type: 'POST',
             data: {gridSpaceId: id, updatedNotes: updatedNotes},
             success: function (data) {
-                
+
             },
             error: function () {
                 alert("Error loading content.");
             }
         });
 
+    }
 
+    function UpdateCompletedStatus(id) {
+        $.ajax({
+            url: "/GridSpace/UpdateGridEncounterCompletedStatus/",
+            type: 'POST',
+            data: {gridEncounterId: id},
+            success: function (data) {
+                alert(data)
+            },
+            error: function () {
+                alert("Error loading content.");
+            }
+        });
+
+    }
+
+    function RemoveGridEncounter(id) {
+        $.ajax({
+            url: "/GridSpace/RemoveGridEncounterFromGridSpace/",
+            type: 'POST',
+            data: {gridEncounterId: id},
+            success: function (data) {
+                alert("Grid Encounter Removed")
+            },
+            error: function () {
+                alert("Error removing Grid Encounter.")
+            }
+        });
+    }
+
+    function RemoveGridCharacter(id) {
+        $.ajax({
+            url: "/GridSpace/RemoveGridCharacterFromGridSpace/",
+            type: 'POST',
+            data: {gridCharacterId: id},
+            success: function (data) {
+                alert("Grid Character Removed")
+            },
+            error: function () {
+                alert("Error removing Grid Character.")
+            }
+        });
     }
 </script>

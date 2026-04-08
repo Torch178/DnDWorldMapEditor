@@ -128,11 +128,38 @@ namespace DnDWorldMapEditor.Controllers
             List<Encounter> encounters = await _context.Encounter.ToListAsync();
             List<Character> characters = await _context.Character.ToListAsync();
 
+            List<Tuple<GridEncounter, Encounter>> gridEncounterDetails = new List<Tuple<GridEncounter, Encounter>>();
+            List<Tuple<GridCharacter, Character>> gridCharacterDetails = new List<Tuple<GridCharacter, Character>>();
+
+            foreach (var gridEncounter in gridEncounters)
+            {
+                Encounter? encounter = encounters.Find(x => x.Id == gridEncounter.EncounterId);
+                if (encounter == null)
+                {
+                    return NotFound();
+                }
+                
+                Tuple<GridEncounter, Encounter> encounterDetails = new Tuple<GridEncounter, Encounter>(gridEncounter, encounter);
+                gridEncounterDetails.Add(encounterDetails);
+            }
+            
+            foreach (var gridCharacter in gridCharacters)
+            {
+                Character? character = characters.Find(x => x.Id == gridCharacter.CharacterId);
+                if (character == null)
+                {
+                    return NotFound();
+                }
+                
+                Tuple<GridCharacter, Character> characterDetails = new Tuple<GridCharacter, Character>(gridCharacter, character);
+                gridCharacterDetails.Add(characterDetails);
+            }
+
             GridSpaceDetailsViewModel viewModel = new GridSpaceDetailsViewModel()
             {
                 GridSpace = gridSpace,
-                GridEncounters = gridEncounters,
-                GridCharacters = gridCharacters,
+                GridEncounters = gridEncounterDetails,
+                GridCharacters = gridCharacterDetails,
                 Encounters = encounters,
                 Characters = characters
             };
@@ -184,6 +211,50 @@ namespace DnDWorldMapEditor.Controllers
             gridSpace.Notes = updatedNotes;
 
             _context.GridSpace.Update(gridSpace);
+            await _context.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        public async Task<IActionResult> UpdateGridEncounterCompletedStatus(int gridEncounterId)
+        {
+            var gridEncounter = await _context.GridEncounter.FindAsync(gridEncounterId);
+            if (gridEncounter == null)
+            {
+                return NotFound();
+            }
+
+            gridEncounter.IsCompleted = !gridEncounter.IsCompleted;
+            _context.GridEncounter.Update(gridEncounter);
+            await _context.SaveChangesAsync();
+            
+            return Ok();
+        }
+
+        public async Task<IActionResult> RemoveGridEncounterFromGridSpace(int gridEncounterId)
+        {
+            var gridEncounter = await _context.GridEncounter.FindAsync(gridEncounterId);
+            if (gridEncounter == null)
+            {
+                return NotFound();
+            }
+
+            _context.GridEncounter.Remove(gridEncounter);
+            await _context.SaveChangesAsync();
+            
+
+            return Ok();
+        }
+        
+        public async Task<IActionResult> RemoveGridCharacterFromGridSpace(int gridCharacterId)
+        {
+            var gridCharacter = await _context.GridCharacter.FindAsync(gridCharacterId);
+            if (gridCharacter == null)
+            {
+                return NotFound();
+            }
+
+            _context.GridCharacter.Remove(gridCharacter);
             await _context.SaveChangesAsync();
 
             return Ok();
