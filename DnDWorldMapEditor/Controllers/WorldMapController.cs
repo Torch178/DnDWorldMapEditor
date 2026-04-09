@@ -6,6 +6,7 @@ using DnDWorldMapEditor.Models;
 using DnDWorldMapEditor.ViewModels;
 using Microsoft.IdentityModel.Tokens;
 using DnDWorldMapEditor.HelperFunctions;
+using Microsoft.AspNetCore.Authorization;
 
 namespace DnDWorldMapEditor.Controllers
 {
@@ -24,11 +25,13 @@ namespace DnDWorldMapEditor.Controllers
         }
 
         // GET: WorldMap
+        [Authorize]
         public async Task<IActionResult> Index()
         {
             try
             {
-                var worldMaps = await _context.WorldMap.ToListAsync();
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var worldMaps = await _context.WorldMap.Where(x => x.UserId == userId).ToListAsync();
                 _logger.LogInformation("World Map Index Called, World Map Count: {worldMaps.Count}", worldMaps.Count);
                 return View(worldMaps);
             }
@@ -41,6 +44,7 @@ namespace DnDWorldMapEditor.Controllers
         }
 
         // GET: WorldMap/Details/5
+        [Authorize]
         public async Task<IActionResult> Details(int? id)
         {
             try
@@ -71,6 +75,7 @@ namespace DnDWorldMapEditor.Controllers
         }
 
         // GET: WorldMap/Create
+        [Authorize]
         public IActionResult Create()
         {
             return View();
@@ -81,6 +86,7 @@ namespace DnDWorldMapEditor.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public async Task<IActionResult> Create(
             [Bind("Name,Description,MapSize,BackgroundImage")]
             WorldMapCreateViewModel worldMapVm)
@@ -160,6 +166,7 @@ namespace DnDWorldMapEditor.Controllers
         // // GET: WorldMap/Edit/5
         [BindProperty] private WorldMapEditViewModel ViewModel { get; set; }
 
+        [Authorize]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -191,6 +198,7 @@ namespace DnDWorldMapEditor.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public async Task<IActionResult> Edit(int id,
             [Bind("Name,Description,OldImage,NewImage")]
             WorldMapEditViewModel updatedMap)
@@ -243,6 +251,7 @@ namespace DnDWorldMapEditor.Controllers
         }
 
         // GET: WorldMap/Delete/5
+        [Authorize]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -264,6 +273,7 @@ namespace DnDWorldMapEditor.Controllers
         [HttpPost]
         [ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var worldMap = await _context.WorldMap.FindAsync(id);
@@ -288,6 +298,7 @@ namespace DnDWorldMapEditor.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [Authorize]
         public async Task CreateGridSpaces(WorldMap worldMap)
         {
             int worldMapId = worldMap.Id;
@@ -302,6 +313,7 @@ namespace DnDWorldMapEditor.Controllers
             }
         }
 
+        [Authorize]
         public async Task DeleteGridSpaces(List<GridSpace> gridSpacesToDelete)
         {
             foreach (var gridSpace in gridSpacesToDelete)
@@ -310,6 +322,7 @@ namespace DnDWorldMapEditor.Controllers
             }
         }
 
+        [Authorize]
         public async Task DeleteGridSpace(int gridSpaceId)
         {
             GridSpace? gridSpace = await _context.GridSpace.FindAsync(gridSpaceId);

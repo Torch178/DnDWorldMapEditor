@@ -13,6 +13,7 @@
 
     <ItemGroup>
         <PackageReference Include="AzureToolkit" Version="2.5.0" />
+        <PackageReference Include="MailKit" Version="4.15.1" />
         <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="9.0.8"/>
         <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.8"/>
         <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="9.0.8"/>

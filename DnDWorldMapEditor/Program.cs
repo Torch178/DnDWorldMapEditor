@@ -1,7 +1,9 @@
 using System;
+using DnDWorldMapEditor;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using DnDWorldMapEditor.Data;
+using DnDWorldMapEditor.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,6 +30,8 @@ builder.Services.AddControllersWithViews().AddRazorPagesOptions(options =>
 {
     
 });
+builder.Services.AddScoped<SendEmail>();
+builder.Services.Configure<MySettings>(builder.Configuration.GetSection("EmailServerPassword"));
 
 // Configure Serilog from appsettings.json
 builder.Host.UseSerilog((context, services, configuration) => configuration

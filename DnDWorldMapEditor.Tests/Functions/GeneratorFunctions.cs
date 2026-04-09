@@ -81,7 +81,12 @@ public static class GeneratorFunctions
         {
             string name = "Character" + i;
             string description = "Description for Character" + i;
-            Character character = new Character(name, description, userId);
+            Character character = new Character()
+            {
+                Name = name,
+                Description = description,
+                UserId = userId
+            };
             
             characters.Add(character);
         }
@@ -96,7 +101,12 @@ public static class GeneratorFunctions
         {
             string name = "Encounter" + i;
             string description = "Description for Encounter" + i;
-            Encounter encounter = new Encounter(name, description, userId);
+            Encounter encounter = new Encounter()
+            {
+                Name = name,
+                Description = description,
+                UserId = userId
+            };
             
             encounters.Add(encounter);
         }

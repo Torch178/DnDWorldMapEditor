@@ -5,10 +5,10 @@ using DnDWorldMapEditor.ViewModels;
 using FakeItEasy;
 using FluentAssertions;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using SQLitePCL;
 using static DnDWorldMapEditor.Tests.Functions.GeneratorFunctions;
 
 namespace DnDWorldMapEditor.Tests.GridSpaceTests;
@@ -25,78 +25,6 @@ public class GridSpaceControllerEditGridSpaceTests
         var dbContext = new ApplicationDbContext(options);
         dbContext.Database.EnsureCreated();
         return new ApplicationDbContext(options);
-    }
-    
-    [Fact]
-    public async Task GSC_EditGridSpaceValidId_ReturnsPartialView()
-    {
-        //Arrange
-        var context = GetDbContext();
-        var logger = A.Fake<ILogger<GridSpaceController>>();
-        var environment = A.Fake<IWebHostEnvironment>();
-        var gridSpaceController = new GridSpaceController(context, environment, logger);
-
-        await context.Database.EnsureDeletedAsync();
-        await context.Database.EnsureCreatedAsync();
-        gridSpaceController.ControllerContext = CreateMockUser();
-
-
-        List<GridSpace> gridSpaces = GenerateGridSpaces(1, 1);
-        await context.AddRangeAsync(gridSpaces);
-        await context.SaveChangesAsync();
-
-        GridSpace? gridSpace = await context.GridSpace.FirstOrDefaultAsync();
-        gridSpace.Should().NotBeNull();
-        int id = gridSpace.Id;
-
-        GridSpaceEditDetailsViewModel model = new GridSpaceEditDetailsViewModel()
-        {
-            Description = "Test Description",
-            History = "Some History",
-            Notes = "Test Notes",
-            Accessible = true
-        };
-        
-
-        //Act
-        var results = await gridSpaceController.Edit(id, model);
-        
-        //Assert
-        results.Should().BeOfType<PartialViewResult>();
-        
-        await context.Database.EnsureDeletedAsync();
-    }
-    
-    [Fact]
-    public async Task GSC_EditGridSpaceInvalidId_ReturnsObjectNotFound()
-    {
-        //Arrange
-        var context = GetDbContext();
-        var logger = A.Fake<ILogger<GridSpaceController>>();
-        var environment = A.Fake<IWebHostEnvironment>();
-        var gridSpaceController = new GridSpaceController(context, environment, logger);
-
-        await context.Database.EnsureDeletedAsync();
-        await context.Database.EnsureCreatedAsync();
-        gridSpaceController.ControllerContext = CreateMockUser();
-        
-
-        GridSpaceEditDetailsViewModel model = new GridSpaceEditDetailsViewModel()
-        {
-            Description = "Test Description",
-            History = "Some History",
-            Notes = "Test Notes",
-            Accessible = true
-        };
-        
-
-        //Act
-        var results = await gridSpaceController.Edit(5, model);
-        
-        //Assert
-        results.Should().BeOfType<NotFoundResult>();
-        
-        await context.Database.EnsureDeletedAsync();
     }
     
     [Fact]
@@ -120,23 +48,16 @@ public class GridSpaceControllerEditGridSpaceTests
         GridSpace? gridSpace = await context.GridSpace.FirstOrDefaultAsync();
         gridSpace.Should().NotBeNull();
         int id = gridSpace.Id;
-
-        GridSpaceEditDetailsViewModel model = new GridSpaceEditDetailsViewModel()
-        {
-            Description = "Test Description",
-            History = "Some History",
-            Notes = "Test Notes",
-            Accessible = true
-        };
+        string newHistory = "updated history";
         
 
         //Act
-        await gridSpaceController.Edit(id, model);
+        await gridSpaceController.UpdateHistory(id, newHistory);
         
         //Assert
         var updatedGridSpace = await context.GridSpace.FindAsync(id);
         updatedGridSpace.Should().NotBeNull();
-        updatedGridSpace.History.Should().Be(model.History);
+        updatedGridSpace.History.Should().Be(newHistory);
         
         
         await context.Database.EnsureDeletedAsync();
@@ -163,23 +84,16 @@ public class GridSpaceControllerEditGridSpaceTests
         GridSpace? gridSpace = await context.GridSpace.FirstOrDefaultAsync();
         gridSpace.Should().NotBeNull();
         int id = gridSpace.Id;
-
-        GridSpaceEditDetailsViewModel model = new GridSpaceEditDetailsViewModel()
-        {
-            Description = "Test Description",
-            History = "Some History",
-            Notes = "Test Notes",
-            Accessible = true
-        };
+        string newDescription = "Updated Description";
         
 
         //Act
-        await gridSpaceController.Edit(id, model);
+        await gridSpaceController.UpdateDescription(id, newDescription);
         
         //Assert
         var updatedGridSpace = await context.GridSpace.FindAsync(id);
         updatedGridSpace.Should().NotBeNull();
-        updatedGridSpace.Description.Should().Be(model.Description);
+        updatedGridSpace.Description.Should().Be(newDescription);
         
         await context.Database.EnsureDeletedAsync();
     }
@@ -205,23 +119,16 @@ public class GridSpaceControllerEditGridSpaceTests
         GridSpace? gridSpace = await context.GridSpace.FirstOrDefaultAsync();
         gridSpace.Should().NotBeNull();
         int id = gridSpace.Id;
-
-        GridSpaceEditDetailsViewModel model = new GridSpaceEditDetailsViewModel()
-        {
-            Description = "Test Description",
-            History = "Some History",
-            Notes = "Test Notes",
-            Accessible = true
-        };
+        string newNotes = "Updated Notes";
         
 
         //Act
-        await gridSpaceController.Edit(id, model);
+        await gridSpaceController.UpdateNotes(id, newNotes);
         
         //Assert
         var updatedGridSpace = await context.GridSpace.FindAsync(id);
         updatedGridSpace.Should().NotBeNull();
-        updatedGridSpace.Notes.Should().Be(model.Notes);
+        updatedGridSpace.Notes.Should().Be(newNotes);
         
         await context.Database.EnsureDeletedAsync();
     }
@@ -247,23 +154,16 @@ public class GridSpaceControllerEditGridSpaceTests
         GridSpace? gridSpace = await context.GridSpace.FirstOrDefaultAsync();
         gridSpace.Should().NotBeNull();
         int id = gridSpace.Id;
-
-        GridSpaceEditDetailsViewModel model = new GridSpaceEditDetailsViewModel()
-        {
-            Description = "Test Description",
-            History = "Some History",
-            Notes = "Test Notes",
-            Accessible = true
-        };
+        bool accessibility = gridSpace.Accessible;
         
 
         //Act
-        await gridSpaceController.Edit(id, model);
+        await gridSpaceController.UpdateAccessibility(id);
         
         //Assert
         var updatedGridSpace = await context.GridSpace.FindAsync(id);
         updatedGridSpace.Should().NotBeNull();
-        updatedGridSpace.Accessible.Should().Be(model.Accessible);
+        updatedGridSpace.Accessible.Should().Be(!accessibility);
         
         await context.Database.EnsureDeletedAsync();
     }
@@ -291,10 +191,12 @@ public class GridSpaceControllerEditGridSpaceTests
         int id = gridSpace.Id;
 
         Character character = GenerateCharacters(1, "User1").First();
+        await context.Character.AddAsync(character);
+        await context.SaveChangesAsync();
         
 
         //Act
-        await gridSpaceController.AddCharacterToGridSpace(id, character);
+        await gridSpaceController.AddCharacterToGridSpace(id, character.Id);
         
         //Assert
         var count = await context.GridCharacter.CountAsync();
@@ -326,10 +228,11 @@ public class GridSpaceControllerEditGridSpaceTests
         int id = gridSpace.Id;
 
         Character character = GenerateCharacters(1, "User1").First();
-        
+        await context.Character.AddAsync(character);
+        await context.SaveChangesAsync();
 
         //Act
-        await gridSpaceController.AddCharacterToGridSpace(id, character);
+        await gridSpaceController.AddCharacterToGridSpace(id, character.Id);
         
         //Assert
         var gridCharacter = await context.GridCharacter.FirstOrDefaultAsync();
@@ -362,10 +265,11 @@ public class GridSpaceControllerEditGridSpaceTests
         int id = gridSpace.Id;
 
         Character character = GenerateCharacters(1, "User1").First();
-        
+        await context.Character.AddAsync(character);
+        await context.SaveChangesAsync();
 
         //Act
-        await gridSpaceController.AddCharacterToGridSpace(id, character);
+        await gridSpaceController.AddCharacterToGridSpace(id, character.Id);
         
         //Assert
         var gridCharacter = await context.GridCharacter.FirstOrDefaultAsync();
@@ -398,10 +302,11 @@ public class GridSpaceControllerEditGridSpaceTests
         int id = gridSpace.Id;
 
         Encounter encounter = GenerateEncounters(1, "User1").First();
-        
+        await context.Encounter.AddAsync(encounter);
+        await context.SaveChangesAsync();
 
         //Act
-        await gridSpaceController.AddEncounterToGridSpace(id, encounter);
+        await gridSpaceController.AddEncounterToGridSpace(id, encounter.Id);
         
         //Assert
         var count = await context.GridEncounter.CountAsync();
@@ -433,10 +338,11 @@ public class GridSpaceControllerEditGridSpaceTests
         int id = gridSpace.Id;
 
         Encounter encounter = GenerateEncounters(1, "User1").First();
-        
+        await context.Encounter.AddAsync(encounter);
+        await context.SaveChangesAsync();
 
         //Act
-        await gridSpaceController.AddEncounterToGridSpace(id, encounter);
+        await gridSpaceController.AddEncounterToGridSpace(id, encounter.Id);
         
         //Assert
         var gridEncounter = await context.GridEncounter.FirstOrDefaultAsync();
@@ -469,10 +375,11 @@ public class GridSpaceControllerEditGridSpaceTests
         int id = gridSpace.Id;
 
         Encounter encounter = GenerateEncounters(1, "User1").First();
-        
+        await context.Encounter.AddAsync(encounter);
+        await context.SaveChangesAsync();
 
         //Act
-        await gridSpaceController.AddEncounterToGridSpace(id, encounter);
+        await gridSpaceController.AddEncounterToGridSpace(id, encounter.Id);
         
         //Assert
         var gridEncounter = await context.GridEncounter.FirstOrDefaultAsync();

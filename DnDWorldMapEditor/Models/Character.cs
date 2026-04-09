@@ -10,12 +10,16 @@ public class Character
     public required string Description { get; set; }
     [MaxLength(450)]
     public string? UserId { get; set; }
-
-    [SetsRequiredMembers]
+    
     public Character(string name, string description, string userId)
     {
         Name = name;
         Description = description;
         UserId = userId;
+    }
+
+    public Character()
+    {
+        
     }
 }
