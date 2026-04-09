@@ -3,7 +3,7 @@
 }
 
 <div class="modal-header">
-    <h5 class="modal-title">Item Details</h5>
+    <h5 class="modal-title">Grid Space Details</h5>
     <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
 </div>
 
@@ -24,8 +24,16 @@
             <h6>General Overview</h6>
             <div class="card w-90">
                 <div class="card-body">
-                    <h5 class="card-title">Description</h5>
+                    <h5 class="card-title">Description
+                        <button class="rounded"><img src="~/images/Icons/pencil-fill.svg" width="16" height="16"
+                                                     fill="currentColor" class="bi bi-pencil-fill"/></button>
+                    </h5>
                     <p class="card-text">@Model.GridSpace.Description</p>
+                    <form id="GridSpaceHistoryForm" class="">
+                        <input value="@Model.GridSpace.Description" type="text" id="GridSpaceDescriptionInput">
+
+                        <button onclick="UpdateDescription(@Model.GridSpace.Id)">Save</button>
+                    </form>
                 </div>
                 <ul class="list-group list-group-flush">
                     <li class="list-group-item">Row: @Model.GridSpace.Row</li>
@@ -198,6 +206,23 @@
         });
     }
 
+    
+    function UpdateDescription(id) {
+        const updatedDescription = $('#GridSpaceDescriptionInput').val();
+        $.ajax({
+            url: "/GridSpace/UpdateDescription/",
+            type: 'POST',
+            data: {gridSpaceId: id, updatedDescription: updatedDescription},
+            success: function (data) {
+
+            },
+            error: function () {
+                alert("Error loading content.");
+            }
+        });
+
+
+    }
     function UpdateHistory(id) {
         const updatedHistory = $('#GridSpaceHistoryInput').val();
         $.ajax({
