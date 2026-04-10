@@ -4,12 +4,14 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using DnDWorldMapEditor.Data;
 using DnDWorldMapEditor.Services;
+using DnDWorldMapEditor.Settings;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Configuration;
+using Microsoft.Extensions.Options;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -31,7 +33,7 @@ builder.Services.AddControllersWithViews().AddRazorPagesOptions(options =>
     
 });
 builder.Services.AddScoped<SendEmail>();
-builder.Services.Configure<MySettings>(builder.Configuration.GetSection("EmailServerPassword"));
+builder.Services.Configure<SmtpServerSettings>(builder.Configuration.GetSection("SmtpServerSettings"));
 
 // Configure Serilog from appsettings.json
 builder.Host.UseSerilog((context, services, configuration) => configuration

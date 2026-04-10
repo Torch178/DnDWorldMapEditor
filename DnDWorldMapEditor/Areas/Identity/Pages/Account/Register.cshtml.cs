@@ -11,6 +11,7 @@ using System.Text.Encodings.Web;
 using System.Threading;
 using System.Threading.Tasks;
 using DnDWorldMapEditor.Services;
+using DnDWorldMapEditor.Settings;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -19,6 +20,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace DnDWorldMapEditor.Areas.Identity.Pages.Account
 {
@@ -30,13 +32,15 @@ namespace DnDWorldMapEditor.Areas.Identity.Pages.Account
         private readonly IUserEmailStore<IdentityUser> _emailStore;
         private readonly ILogger<RegisterModel> _logger;
         private readonly SendEmail _emailSender;
+        private readonly SmtpServerSettings _serverSettings;
 
         public RegisterModel(
             UserManager<IdentityUser> userManager,
             IUserStore<IdentityUser> userStore,
             SignInManager<IdentityUser> signInManager,
             ILogger<RegisterModel> logger,
-            SendEmail emailSender)
+            SendEmail emailSender,
+            IOptions<SmtpServerSettings> serverSettings)
         {
             _userManager = userManager;
             _userStore = userStore;
@@ -44,6 +48,7 @@ namespace DnDWorldMapEditor.Areas.Identity.Pages.Account
             _signInManager = signInManager;
             _logger = logger;
             _emailSender = emailSender;
+            _serverSettings = serverSettings.Value;
         }
 
         /// <summary>
@@ -131,8 +136,14 @@ namespace DnDWorldMapEditor.Areas.Identity.Pages.Account
                         pageHandler: null,
                         values: new { area = "Identity", userId = userId, code = code, returnUrl = returnUrl },
                         protocol: Request.Scheme);
+                    
+                    //SMTP Email Server Settings Variables
+                    var host = _serverSettings.Host;
+                    var portNumber = _serverSettings.PortNumber;
+                    var serverUserName = _serverSettings.UserName;
+                    var password = _serverSettings.Password;
 
-                    _emailSender.Send(Input.Email, $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+                    _emailSender.Send(Input.Email, $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.", host, portNumber, serverUserName, password);
 
                     if (_userManager.Options.SignIn.RequireConfirmedAccount)
                     {
