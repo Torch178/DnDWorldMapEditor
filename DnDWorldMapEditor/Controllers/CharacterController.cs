@@ -115,6 +115,14 @@ namespace DnDWorldMapEditor.Controllers
             {
                 try
                 {
+                    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                    if (userId == null)
+                    {
+                        return RedirectToPage("/Identity/Account/Login/");
+                    }
+
+                    character.UserId = userId;
+                    
                     _context.Update(character);
                     await _context.SaveChangesAsync();
                 }
