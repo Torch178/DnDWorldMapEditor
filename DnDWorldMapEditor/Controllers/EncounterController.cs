@@ -1,4 +1,3 @@
-
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -6,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using DnDWorldMapEditor.Data;
 using DnDWorldMapEditor.Models;
+using DnDWorldMapEditor.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 
 namespace DnDWorldMapEditor.Controllers
@@ -20,12 +20,15 @@ namespace DnDWorldMapEditor.Controllers
         }
 
         // GET: Encounter
+        [Authorize]
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Encounter.ToListAsync());
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return View(await _context.Encounter.Where(x => x.UserId == userId).ToListAsync());
         }
 
         // GET: Encounter/Details/5
+        [Authorize]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -44,6 +47,7 @@ namespace DnDWorldMapEditor.Controllers
         }
 
         // GET: Encounter/Create
+        [Authorize]
         public IActionResult Create()
         {
             return View();
@@ -54,6 +58,7 @@ namespace DnDWorldMapEditor.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public async Task<IActionResult> Create([Bind("Id,Name,Description")] Encounter encounter)
         {
             if (ModelState.IsValid)
@@ -67,15 +72,17 @@ namespace DnDWorldMapEditor.Controllers
                 {
                     return RedirectToPage("/Identity/Account/Login/");
                 }
-                
+
                 _context.Add(encounter);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
+
             return View(encounter);
         }
 
         // GET: Encounter/Edit/5
+        [Authorize]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -88,6 +95,7 @@ namespace DnDWorldMapEditor.Controllers
             {
                 return NotFound();
             }
+
             return View(encounter);
         }
 
@@ -96,6 +104,7 @@ namespace DnDWorldMapEditor.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description")] Encounter encounter)
         {
             if (id != encounter.Id)
@@ -121,12 +130,15 @@ namespace DnDWorldMapEditor.Controllers
                         throw;
                     }
                 }
+
                 return RedirectToAction(nameof(Index));
             }
+
             return View(encounter);
         }
 
         // GET: Encounter/Delete/5
+        [Authorize]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -147,6 +159,7 @@ namespace DnDWorldMapEditor.Controllers
         // POST: Encounter/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var encounter = await _context.Encounter.FindAsync(id);
@@ -155,6 +168,9 @@ namespace DnDWorldMapEditor.Controllers
                 _context.Encounter.Remove(encounter);
             }
 
+            var gridEncounters = await _context.GridEncounter.Where(x => x.EncounterId == id).ToListAsync();
+            _context.RemoveRange(gridEncounters);
+
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
@@ -162,6 +178,16 @@ namespace DnDWorldMapEditor.Controllers
         private bool EncounterExists(int id)
         {
             return _context.Encounter.Any(e => e.Id == id);
+        }
+
+        [Authorize]
+        public async Task<IActionResult> GetEncounter(int encounterId)
+        {
+            Encounter? encounter = await _context.Encounter.FindAsync(encounterId);
+
+            if (encounter == null) return NotFound();
+
+            return PartialView("EncounterCard", encounter);
         }
     }
 }

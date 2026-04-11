@@ -19,12 +19,15 @@ namespace DnDWorldMapEditor.Controllers
         }
 
         // GET: Character
+        [Authorize]
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Character.ToListAsync());
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return View(await _context.Character.Where(x => x.UserId == userId).ToListAsync());
         }
 
         // GET: Character/Details/5
+        [Authorize]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -43,6 +46,7 @@ namespace DnDWorldMapEditor.Controllers
         }
 
         // GET: Character/Create
+        [Authorize]
         public IActionResult Create()
         {
             return View();
@@ -67,14 +71,17 @@ namespace DnDWorldMapEditor.Controllers
                 {
                     return RedirectToPage("/Identity/Account/Login/");
                 }
+
                 _context.Add(character);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
+
             return View(character);
         }
 
         // GET: Character/Edit/5
+        [Authorize]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -87,6 +94,7 @@ namespace DnDWorldMapEditor.Controllers
             {
                 return NotFound();
             }
+
             return View(character);
         }
 
@@ -95,7 +103,8 @@ namespace DnDWorldMapEditor.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description,UserId")] Character character)
+        [Authorize]
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description")] Character character)
         {
             if (id != character.Id)
             {
@@ -120,12 +129,15 @@ namespace DnDWorldMapEditor.Controllers
                         throw;
                     }
                 }
+
                 return RedirectToAction(nameof(Index));
             }
+
             return View(character);
         }
 
         // GET: Character/Delete/5
+        [Authorize]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -146,6 +158,7 @@ namespace DnDWorldMapEditor.Controllers
         // POST: Character/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var character = await _context.Character.FindAsync(id);
@@ -153,6 +166,9 @@ namespace DnDWorldMapEditor.Controllers
             {
                 _context.Character.Remove(character);
             }
+
+            var gridCharacters = await _context.GridCharacter.Where(x => x.CharacterId == id).ToListAsync();
+            _context.GridCharacter.RemoveRange(gridCharacters);
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
