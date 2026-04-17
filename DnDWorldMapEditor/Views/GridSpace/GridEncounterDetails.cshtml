@@ -1,0 +1,22 @@
+@model Tuple<GridEncounter, Encounter>
+<div class=" d-inline-flex h-auto justify-content-evenly">
+    <div class="card w-100 p-2" style="">
+        <div class="card-body ">
+            <h5 class="card-title">@Model.Item2.Name</h5>
+            <p class="card-text">@Model.Item2.Description</p>
+            <ul class="list-group p-2 m-2">
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    Completed:
+                    <label class="switch">
+                        <input onchange="UpdateCompletedStatus(@Model.Item1.Id)" type="checkbox"
+                               checked="@Model.Item1.IsCompleted"/>
+                        <span class="slider round"></span>
+                    </label>
+                </li>
+            </ul>
+
+            <button onclick="RemoveGridEncounter(this, @Model.Item1.Id)" class="btn btn-danger rounded">Remove
+            </button>
+        </div>
+    </div>
+</div>

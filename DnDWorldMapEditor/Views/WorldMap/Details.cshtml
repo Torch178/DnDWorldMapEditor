@@ -1,3 +1,4 @@
+@using Microsoft.EntityFrameworkCore.Metadata.Internal
 @model DnDWorldMapEditor.Models.WorldMap
 @{
     ViewData["Title"] = "Details";
@@ -82,7 +83,7 @@
                 { 
                     <div
                         class="col gridSpace align-content-center"
-                        onclick="loadPopup(@i,@j,@Model.Id)">
+                        onclick="loadGridSpaceModal(@i,@j,@Model.Id)">
                         X
                     </div>
                     
@@ -93,28 +94,13 @@
 </div>
 
 
-<!-- Empty Modal Container -->
-<div id="myModal" class="modal fade" role="dialog">
-    <div class="modal-dialog">
-        <div class="modal-content" id="modalContent">
+<div id="gridSpaceDetailsModal" class="modal fade" role="dialog">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content" id="gridSpaceDetailsModalContent">
             <!-- Partial View content will be injected here -->
         </div>
     </div>
 </div>
 
-<script type="text/javascript">
-    function loadPopup(row, col, id){
-        $.ajax({
-            url: "/GridSpace/GetGridSpaceDetails/",
-            type: 'GET',
-            data: {row: row, col: col, worldMapId: id},
-            success: function(data){
-                $('#modalContent').html(data);
-                $('#myModal').modal('show');
-            },
-            error: function(){
-                alert("Error loading content.");
-            }
-        });
-    }
-</script>
+
+

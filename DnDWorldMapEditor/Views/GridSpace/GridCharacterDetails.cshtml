@@ -1,0 +1,11 @@
+@model Tuple<GridCharacter, Character>
+<div class=" d-inline-flex h-auto justify-content-evenly">
+    <div class="card w-100 p-2 "  style="">
+        <div class="card-body ">
+            <h5 class="card-title">@Model.Item2.Name</h5>
+            <p class="card-text">@Model.Item2.Description</p>
+            <button id="removeCharacterBtn" onclick="RemoveGridCharacter(this, @Model.Item1.Id)" class="btn btn-danger rounded">Remove
+            </button>
+        </div>
+    </div>
+</div>

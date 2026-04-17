@@ -1,0 +1,20 @@
+@model GridSpace
+
+<div class="modal-header">
+    <h5 class="modal-title">Edit Grid Space History</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <form id="GridSpaceHistoryForm" class="">
+        <div class="mb-3">
+            <label for="@Model.History" class="form-label">History</label>
+            <textarea class="form-control  h-auto overflow-y-scroll" rows="10" id="GridSpaceHistoryInput">
+                @Model.History
+            </textarea>
+        </div>
+    </form>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+    <button data-bs-dismiss="modal" onclick="UpdateHistory(@Model.Id)">Save</button>
+</div>

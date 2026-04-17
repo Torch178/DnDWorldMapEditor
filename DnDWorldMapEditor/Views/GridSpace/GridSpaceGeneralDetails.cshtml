@@ -1,0 +1,39 @@
+@model DnDWorldMapEditor.ViewModels.GridSpaceGeneralDetailsViewModel
+
+<div class="card w-90">
+    <div class="card-body">
+        <h5 class="card-title">Description
+            <button data-id="@Model.GridSpace.Id"  id="GridSpaceDescriptionEditBtn" class="rounded float-end"><img src="~/images/Icons/pencil-fill.svg" width="16" height="16"
+                                                                                                        fill="currentColor" class="bi bi-pencil-fill"/></button>
+        </h5>
+        <p id="DescriptionDisplayInfo" class="card-text">@Model.GridSpace.Description</p>
+        
+    </div>
+    <ul class="list-group list-group-flush">
+        <li class="list-group-item">Row: @Model.GridSpace.Row</li>
+        <li class="list-group-item">Column: @Model.GridSpace.Col</li>
+        <li class="list-group-item">Encounters: @Model.GridEncounterCount</li>
+        <li class="list-group-item">Characters: @Model.GridCharacterCount</li>
+        <li class="list-group-item">Accessible: <label class="switch">
+            <input onchange="UpdateAccessibility(@Model.GridSpace.Id)" type="checkbox"
+                   checked="@Model.GridSpace.Accessible"/>
+            <span class="slider round"></span>
+        </label></li>
+    </ul>
+</div>
+
+
+
+<div id="gridSpaceDescriptionEditModal" class="modal fade bg-dark shadow-lg" tabindex="-1">
+    <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered">
+        <div class="modal-content" id="gridSpaceDescriptionEditModalContent">
+
+        </div>
+    </div>
+</div>
+
+
+
+<script>
+    document.getElementById("GridSpaceDescriptionEditBtn").addEventListener("click", loadGridSpaceDescriptionEditForm);
+</script>

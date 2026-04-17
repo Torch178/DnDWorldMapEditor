@@ -63,6 +63,9 @@ namespace DnDWorldMapEditor.Controllers
                     _logger.LogError("WorldMap Details not found, id is null\nWorldMap: {wm}", worldMap);
                     return NotFound();
                 }
+                
+                var imageFile = Path.Combine("images", "worldMaps", worldMap.BackgroundImage);
+                ViewBag.ImagePath = imageFile;
 
                 return View(worldMap);
             }
@@ -265,7 +268,8 @@ namespace DnDWorldMapEditor.Controllers
             {
                 return NotFound();
             }
-
+            
+            
             return View(worldMap);
         }
 

@@ -5,6 +5,7 @@ using DnDWorldMapEditor.Data;
 using DnDWorldMapEditor.Models;
 using DnDWorldMapEditor.ViewModels;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace DnDWorldMapEditor.Controllers
 {
@@ -75,8 +76,10 @@ namespace DnDWorldMapEditor.Controllers
                 await _context.SaveChangesAsync();
 
                 _logger.LogInformation("Added Character: {1} to GridSpace: {0}", characterId, gridSpaceId);
+                Tuple<GridCharacter, Character> viewData =
+                    new Tuple<GridCharacter, Character>(newGridCharacter, character);
 
-                return Ok();
+                return PartialView("GridCharacterDetails",viewData);
             }
             else
             {
@@ -84,7 +87,7 @@ namespace DnDWorldMapEditor.Controllers
             }
         }
 
-        [HttpPost]
+
         [Authorize]
         public async Task<IActionResult> AddEncounterToGridSpace(int gridSpaceId, int encounterId)
         {
@@ -113,7 +116,9 @@ namespace DnDWorldMapEditor.Controllers
 
                 _logger.LogInformation("Added Encounter: {1} to GridSpace: {0}", encounterId, gridSpaceId);
 
-                return Ok();
+                Tuple<GridEncounter, Encounter> viewData = new Tuple<GridEncounter, Encounter>(newGridEncounter, encounter );
+
+                return PartialView("GridEncounterDetails", viewData);
             }
             else
             {
@@ -123,12 +128,42 @@ namespace DnDWorldMapEditor.Controllers
 
 
         [Authorize]
+        public async Task<IActionResult> GetGridSpaceDetailsById(int gridSpaceId)
+        {
+            GridSpace? gridSpace =
+                await _context.GridSpace.FindAsync(gridSpaceId);
+            if (gridSpace == null)
+            {
+                return BadRequest();
+            }
+
+            GridSpaceDetailsViewModel? viewModel = await GetGridSpaceDetailsViewModelData(gridSpace);
+            if (viewModel == null)
+            {
+                return BadRequest();
+            }
+
+            return PartialView("GridSpaceDataModal", viewModel);
+        }
+
+        [Authorize]
         public async Task<IActionResult> GetGridSpaceDetails(int row, int col, int worldMapId)
         {
             GridSpace gridSpace =
                 await _context.GridSpace.Where(x => x.Col == col && x.Row == row && x.WorldMapId == worldMapId)
                     .FirstAsync();
 
+            GridSpaceDetailsViewModel? viewModel = await GetGridSpaceDetailsViewModelData(gridSpace);
+            if (viewModel == null)
+            {
+                return NotFound();
+            }
+
+            return PartialView("GridSpaceDataModal", viewModel);
+        }
+
+        public async Task<GridSpaceDetailsViewModel?> GetGridSpaceDetailsViewModelData(GridSpace gridSpace)
+        {
             List<GridEncounter> gridEncounters =
                 await _context.GridEncounter.Where(x => x.GridSpaceId == gridSpace.Id).ToListAsync();
             List<GridCharacter> gridCharacters =
@@ -144,7 +179,7 @@ namespace DnDWorldMapEditor.Controllers
                 Encounter? encounter = encounters.Find(x => x.Id == gridEncounter.EncounterId);
                 if (encounter == null)
                 {
-                    return NotFound();
+                    return null;
                 }
 
                 Tuple<GridEncounter, Encounter> encounterDetails =
@@ -157,7 +192,7 @@ namespace DnDWorldMapEditor.Controllers
                 Character? character = characters.Find(x => x.Id == gridCharacter.CharacterId);
                 if (character == null)
                 {
-                    return NotFound();
+                    return null;
                 }
 
                 Tuple<GridCharacter, Character> characterDetails =
@@ -174,8 +209,7 @@ namespace DnDWorldMapEditor.Controllers
                 Characters = characters
             };
 
-
-            return PartialView("GridSpaceDataModal", viewModel);
+            return viewModel;
         }
 
 
@@ -193,7 +227,7 @@ namespace DnDWorldMapEditor.Controllers
             _context.GridSpace.Update(gridSpace);
             await _context.SaveChangesAsync();
 
-            return Ok();
+            return Ok(gridSpaceId);
         }
 
         public async Task<IActionResult> UpdateAccessibility(int gridSpaceId)
@@ -209,7 +243,7 @@ namespace DnDWorldMapEditor.Controllers
             _context.GridSpace.Update(gridSpace);
             await _context.SaveChangesAsync();
 
-            return Ok();
+            return Ok(gridSpaceId);
         }
 
         [Authorize]
@@ -226,7 +260,7 @@ namespace DnDWorldMapEditor.Controllers
             _context.GridSpace.Update(gridSpace);
             await _context.SaveChangesAsync();
 
-            return Ok();
+            return Ok(gridSpaceId);
         }
 
         [Authorize]
@@ -243,14 +277,15 @@ namespace DnDWorldMapEditor.Controllers
             _context.GridSpace.Update(gridSpace);
             await _context.SaveChangesAsync();
 
-            return Ok();
+            return Ok(gridSpaceId);
         }
 
         [Authorize]
         public async Task<IActionResult> UpdateGridEncounterCompletedStatus(int gridEncounterId)
         {
             var gridEncounter = await _context.GridEncounter.FindAsync(gridEncounterId);
-            if (gridEncounter == null)
+            var gridSpace = await _context.GridSpace.FindAsync(gridEncounter.GridSpaceId);
+            if (gridEncounter == null || gridSpace == null)
             {
                 return NotFound();
             }
@@ -259,23 +294,26 @@ namespace DnDWorldMapEditor.Controllers
             _context.GridEncounter.Update(gridEncounter);
             await _context.SaveChangesAsync();
 
-            return Ok();
+            return Ok(gridSpace.Id);
         }
 
         [Authorize]
         public async Task<IActionResult> RemoveGridEncounterFromGridSpace(int gridEncounterId)
         {
             var gridEncounter = await _context.GridEncounter.FindAsync(gridEncounterId);
+
             if (gridEncounter == null)
             {
                 return NotFound();
             }
 
+            int gridSpaceId = gridEncounter.GridSpaceId;
+
             _context.GridEncounter.Remove(gridEncounter);
             await _context.SaveChangesAsync();
 
 
-            return Ok();
+            return Ok(gridSpaceId);
         }
 
         [Authorize]
@@ -287,10 +325,36 @@ namespace DnDWorldMapEditor.Controllers
                 return NotFound();
             }
 
+            int gridSpaceId = gridCharacter.GridSpaceId;
+
             _context.GridCharacter.Remove(gridCharacter);
             await _context.SaveChangesAsync();
 
-            return Ok();
+            return Ok(gridSpaceId);
+        }
+
+        public async Task<IActionResult> GetGridSpaceDescriptionForm(int gridSpaceId)
+        {
+            var gridSpace = await _context.GridSpace.FindAsync(gridSpaceId);
+            if (gridSpace == null) return BadRequest();
+
+            return PartialView("GridSpaceEditDescriptionModalForm", gridSpace);
+        }
+
+        public async Task<IActionResult> GetGridSpaceNotesForm(int gridSpaceId)
+        {
+            var gridSpace = await _context.GridSpace.FindAsync(gridSpaceId);
+            if (gridSpace == null) return BadRequest();
+
+            return PartialView("GridSpaceEditNotesFormModal", gridSpace);
+        }
+
+        public async Task<IActionResult> GetGridSpaceHistoryForm(int gridSpaceId)
+        {
+            var gridSpace = await _context.GridSpace.FindAsync(gridSpaceId);
+            if (gridSpace == null) return BadRequest();
+
+            return PartialView("GridSpaceEditHistoryFormModal", gridSpace);
         }
 
 
