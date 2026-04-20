@@ -53,29 +53,45 @@
 
 
 </style>
+<div class="container ">
+    <a asp-action="Index" class="rounded float-start"><h3>
+        <img src="~/images/Icons/arrow-left-square-fill.svg" width="32" height="32"
+             fill="white" class="bi bi-arrow-left-square-fill rounded bg-white"/>
+    </h3></a>
+    <h1 class=" d-flex justify-content-center">World Map Details</h1>
 
-<h1 class=" d-flex justify-content-center">World Map Details</h1>
+</div>
+
 <div class="container mb-3 w-75 justify-content-evenly">
     <div class="card">
-        <div class="card-body">
-            <h3 class="card-title">@Html.DisplayFor(model => model.WorldMap.Name)</h3>
-            <h4>@Html.DisplayNameFor(model => model.WorldMap.Description)</h4>
-            <div class="card-text">
-                @Html.DisplayFor(model => model.WorldMap.Description)
-            </div>
-            <hr/>
-            <ul class="list-group">
-                <li class="list-group-item">@Html.DisplayNameFor(model => model.WorldMap.TotalRows): @Html.DisplayFor(model => model.WorldMap.TotalRows)</li>
-                <li class="list-group-item">@Html.DisplayNameFor(model => model.WorldMap.TotalColumns): @Html.DisplayFor(model => model.WorldMap.TotalColumns)</li>
-            </ul>
-        </div>
-        <div class="card-body">
-            <div class="row justify-content-around text-center">
-                <a class="col-3  btn btn-primary rounded" asp-action="Edit" asp-route-id="@Model?.WorldMap.Id">Edit</a>
-                <a class="col-3  btn btn-danger rounded" asp-action="Index">Back to List</a>
-            </div>
+        <div class="card-header  d-flex justify-content-between">
+            <h4 class="align-content-center">World Map Details</h4>
+            <button id="collapseToggleButton" class="btn btn-info d-inline-flex" data-bs-toggle="collapse" data-bs-target="#main-card-content" aria-expanded="false" arai-controls="main-card-content" type="button">Show</button>
 
         </div>
+        <div class="collapse" id="main-card-content">
+            <div class="card-body">
+                <h3 class="card-title">@Html.DisplayFor(model => model.WorldMap.Name)</h3>
+                <h4>@Html.DisplayNameFor(model => model.WorldMap.Description)</h4>
+                <div class="card-text">
+                    @Html.DisplayFor(model => model.WorldMap.Description)
+                </div>
+                <hr/>
+                <ul class="list-group">
+                    <li class="list-group-item">@Html.DisplayNameFor(model => model.WorldMap.TotalRows): @Html.DisplayFor(model => model.WorldMap.TotalRows)</li>
+                    <li class="list-group-item">@Html.DisplayNameFor(model => model.WorldMap.TotalColumns): @Html.DisplayFor(model => model.WorldMap.TotalColumns)</li>
+                    <li class="list-group-item">@Html.DisplayNameFor(model => model.WorldMap.MapSize): @Html.DisplayFor(model => model.WorldMap.MapSize)</li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="row justify-content-around text-center">
+                    <a class="col-3  btn btn-primary rounded" asp-action="Edit" asp-route-id="@Model?.WorldMap.Id">Edit</a>
+                    
+                </div>
+
+            </div>
+        </div>
+
 
     </div>
 </div>
@@ -186,5 +202,15 @@
     </div>
 </div>
 
+<script>
+    var toggleBtn = document.getElementById('collapseToggleButton');
+    toggleBtn.addEventListener("click", (e) => {
+        if(toggleBtn.innerHTML === "Show"){
+            toggleBtn.innerHTML = "Hide"
+        }else{
+            toggleBtn.innerHTML = "Show"
+        }
+    })
+</script>
 
 

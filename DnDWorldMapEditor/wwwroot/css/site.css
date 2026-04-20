@@ -25,9 +25,16 @@ body {
 
 footer{
   background-color: white;
+  width: 100vw;
 }
 
+.dashboard-card{
+  height: 200px;
+}
 
+.dashboard-card-text{
+  height: 50px;
+}
 
 .grid-details-modal{
   /*background-color: #0a53be;*/

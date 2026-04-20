@@ -2,9 +2,10 @@
 
 @{
     ViewData["Title"] = "Edit";
+    string header = "Edit Character";
 }
 
-<h1 class=" d-flex justify-content-center">Edit Character</h1>
+@{ await Html.RenderPartialAsync("HeaderComponent", header);}
 <div class="container-fluid justify-content-center ">
     <div class="card">
         <h4 class="card-header">Character Info</h4>
@@ -33,7 +34,4 @@
     
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
 

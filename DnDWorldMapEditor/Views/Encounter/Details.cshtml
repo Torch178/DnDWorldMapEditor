@@ -4,33 +4,18 @@
     ViewData["Title"] = "Details";
 }
 
-<h1>Details</h1>
+@{ await Html.RenderPartialAsync("HeaderComponent", "Encounter Details");}
 
-<div>
-    <h4>Encounter</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Name)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Name)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Description)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Description)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.UserId)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.UserId)
-        </dd>
-    </dl>
-</div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+<div class="col">
+
+    <div class="card w-auto h-100">
+        <div class="card-body">
+            <h5 class="card-title">@Model.Name</h5>
+            <p class="card-text text-nowrap overflow-hidden">@Model.Description</p>
+        </div>
+        <div class="card-body ">
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Edit</a> 
+            <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">Delete</a>
+        </div>
+    </div>
 </div>

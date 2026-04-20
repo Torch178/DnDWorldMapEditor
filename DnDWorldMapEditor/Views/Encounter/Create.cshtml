@@ -4,7 +4,7 @@
     ViewData["Title"] = "Create";
 }
 
-<h1 class=" d-flex justify-content-center">Create Encounter</h1>
+@{ await Html.RenderPartialAsync("HeaderComponent", "Create Encounter");}
 <div class="container-fluid justify-content-center ">
     <div class="card">
         <h4 class="card-header">Encounter Info</h4>
@@ -31,7 +31,3 @@
     </div>
     
 </div>
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-

@@ -13,9 +13,9 @@
             <li class="list-group-item">Total Rows: @Model.TotalRows</li>
         </ul>
         <div class="card-body">
-            <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a> |
-            <a asp-action="Details" asp-route-id="@Model.Id">Details</a> |
-            <a asp-action="Delete" asp-route-id="@Model.Id">Delete</a>
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Edit</a> |
+            <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-primary">Details</a> |
+            <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">Delete</a>
         </div>
     </div>
 </div>
