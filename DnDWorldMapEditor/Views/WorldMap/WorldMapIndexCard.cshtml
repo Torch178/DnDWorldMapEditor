@@ -1,0 +1,21 @@
+@model WorldMap
+<div class="col">
+
+    <div class="card w-auto h-100">
+        <img src="~/images/worldMaps/@Model.BackgroundImage" class="card-img-top" alt="...">
+        <div class="card-body">
+            <h5 class="card-title">@Model.Name</h5>
+            <p class="card-text text-nowrap overflow-hidden">@Model.Description</p>
+        </div>
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item">Map Size: @Model.MapSize</li>
+            <li class="list-group-item">Total Columns: @Model.TotalColumns</li>
+            <li class="list-group-item">Total Rows: @Model.TotalRows</li>
+        </ul>
+        <div class="card-body">
+            <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a> |
+            <a asp-action="Details" asp-route-id="@Model.Id">Details</a> |
+            <a asp-action="Delete" asp-route-id="@Model.Id">Delete</a>
+        </div>
+    </div>
+</div>

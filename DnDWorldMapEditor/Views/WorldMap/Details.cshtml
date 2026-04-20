@@ -1,97 +1,181 @@
-@using Microsoft.EntityFrameworkCore.Metadata.Internal
-@model DnDWorldMapEditor.Models.WorldMap
+@using System.Diagnostics
+@using Microsoft.CodeAnalysis.CSharp.Syntax
+@model DnDWorldMapEditor.ViewModels.WorldMapDetailsViewModel
 @{
     ViewData["Title"] = "Details";
     int mapSize = 500;
-    
 }
 <style>
-    .worldMapGridArea{
-        background-image: url("/images/worldMaps/@Model.BackgroundImage");
+    .worldMapGridArea {
+        background-image: url("/images/worldMaps/@Model.WorldMap.BackgroundImage");
         background-repeat: no-repeat;
         background-position: center center;
         background-size: cover;
         height: 500px;
         width: 500px;
     }
-    .col{
-        column-height: calc((@mapSize / @(Model.TotalRows) * 1px) - 1px);
-        border: 1px solid black;
-        
+
+    .grid-gutter {
+        background-repeat: no-repeat;
+        background-position: center center;
+        background-size: cover;
+        height: 525px;
+        width: 525px;
     }
-   .map-row{
-       width: 500px;
-   }
-    
+
+    .col {
+        column-height: calc((@mapSize / @(Model.WorldMap.TotalRows) * 1px) - 1px);
+        border: 1px solid black;
+
+    }
+
+    .map-row {
+        width: 500px;
+    }
+
+    .grid-icon {
+        width: 25px; /* Small fixed width */
+        height: 25px; /* Same height for a circle */
+        border-radius: 50%; /* Makes it perfectly round */
+        display: inline-block;
+    }
+
+    .grid-col-label {
+        width: calc((@mapSize / @(Model.WorldMap.TotalRows) * 1px) - 5px);
+        height: 24px;
+    }
+    .grid-row-label {
+        height: calc((@mapSize / @(Model.WorldMap.TotalRows) * 1px) - 1px);
+    }
+    .grid-row-start {
+        height:24px;
+    }
+
+
 </style>
 
-<h1>Details</h1>
-
-<div>
-    <h4>WorldMap</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.UserId)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.UserId)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Name)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Name)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Description)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Description)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.TotalRows)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.TotalRows)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.TotalColumns)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.TotalColumns)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.BackgroundImage)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.BackgroundImage)
-        </dd>
-    </dl>
-</div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
-</div>
-
-<div class="container worldMapGridArea">
-    @{
-        for (int i = 0; i < Model.TotalRows; i++)
-        {
-            <div class="row map-row" style="flex-wrap: nowrap">
-                @for (int j = 0; j < Model.TotalColumns; j++)
-                { 
-                    <div
-                        class="col gridSpace align-content-center"
-                        onclick="loadGridSpaceModal(@i,@j,@Model.Id)">
-                        X
-                    </div>
-                    
-                }
+<h1 class=" d-flex justify-content-center">World Map Details</h1>
+<div class="container mb-3 w-75 justify-content-evenly">
+    <div class="card">
+        <div class="card-body">
+            <h3 class="card-title">@Html.DisplayFor(model => model.WorldMap.Name)</h3>
+            <h4>@Html.DisplayNameFor(model => model.WorldMap.Description)</h4>
+            <div class="card-text">
+                @Html.DisplayFor(model => model.WorldMap.Description)
             </div>
-        }
-    }
+            <hr/>
+            <ul class="list-group">
+                <li class="list-group-item">@Html.DisplayNameFor(model => model.WorldMap.TotalRows): @Html.DisplayFor(model => model.WorldMap.TotalRows)</li>
+                <li class="list-group-item">@Html.DisplayNameFor(model => model.WorldMap.TotalColumns): @Html.DisplayFor(model => model.WorldMap.TotalColumns)</li>
+            </ul>
+        </div>
+        <div class="card-body">
+            <div class="row justify-content-around text-center">
+                <a class="col-3  btn btn-primary rounded" asp-action="Edit" asp-route-id="@Model?.WorldMap.Id">Edit</a>
+                <a class="col-3  btn btn-danger rounded" asp-action="Index">Back to List</a>
+            </div>
+
+        </div>
+
+    </div>
 </div>
+<div class=" d-flex container grid-gutter ">
+    <div class="container float-left  grid-gutter " >
+        @{
+            for (int i = -1; i < Model.WorldMap.TotalRows; i++)
+            {
+                if (i == -1)
+                {
+                    <div class="d-inline-flex grid-row-start"></div>
+                }
+                else
+                {
+                    <div class="d-inline-flex grid-row-label align-items-center fw-bold">@(i)</div>
+                }
+                
+
+            }
+        }
+    </div>
+    <div class="container grid-gutter text-center">
+        @{
+            for (int i = 0; i < Model.WorldMap.TotalRows; i++)
+            {
+
+                <div class="d-inline-block grid-col-label  fw-bold">@(i)</div>
+
+            }
+        }
+        <div class="container worldMapGridArea ">
+            @{
+                for (int i = 0; i < Model.WorldMap.TotalRows; i++)
+                {
+                    <div class="row map-row " style="flex-wrap: nowrap">
+                        @for (int j = 0; j < Model.WorldMap.TotalColumns; j++)
+                        {
+                            <div
+                                @{
+                                    var gridStatus = Model.Status[(i, j)];
+                                    var backgroundStyle = "";
+                                    var iconStyle = "";
+                                    var iconContent = gridStatus[3];
+                                    var gridSquareId = "gridSquare-" + i + "-" + j;
+                                    if (gridStatus[0] == 'I') backgroundStyle = "background-color: rgb(169,169,169,0.9);";
+                                    if (gridStatus[1] == 'N')
+                                    {
+                                        iconStyle = "background-color: rgb(169,169,169);";
+                                        iconContent = 'X';
+                                    }
+                                    else
+                                    {
+                                        switch (gridStatus[2])
+                                        {
+                                            case 'A':
+                                                iconStyle = "background-color: rgb(0, 204, 0);";
+                                                break;
+                                            case 'S':
+                                                iconStyle = "background-color: rgb(255, 204, 0);";
+                                                break;
+                                            default:
+                                                iconStyle = "background-color: rgb(255, 0, 0);";
+                                                break;
+                                        }
+                                    }
+                                }
+                                id="@gridSquareId" 
+                                class="col gridSpace justify-content-evenly align-items-center"
+                                style="@backgroundStyle"
+                                onclick="loadGridSpaceModal(@i,@j,@Model.WorldMap.Id)">
+                                @switch (Model.WorldMap.MapSize)
+                                {
+                                    case "Large":
+                                        <div
+                                            class="grid-icon  d-flex justify-content-center align-items-center position-relative top-50 start-0"
+                                            style="@iconStyle">@iconContent</div>
+                                        break;
+                                    case "Medium":
+                                        <div
+                                            class="grid-icon d-flex justify-content-center align-items-center position-relative "
+                                            style="@iconStyle left: 25%; top: 75%;">@iconContent</div>
+                                        break;
+                                    case "Small":
+                                        <div
+                                            class="grid-icon d-flex justify-content-center align-items-center position-relative "
+                                            style="@iconStyle left: 35%; top: 150%;">@iconContent</div>
+                                        break;
+                                }
+
+
+                            </div>
+                        }
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>
+
+
 
 
 <div id="gridSpaceDetailsModal" class="modal fade" role="dialog">

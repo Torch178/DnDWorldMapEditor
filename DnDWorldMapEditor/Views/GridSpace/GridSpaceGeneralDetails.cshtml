@@ -12,8 +12,8 @@
     <ul class="list-group list-group-flush">
         <li class="list-group-item">Row: @Model.GridSpace.Row</li>
         <li class="list-group-item">Column: @Model.GridSpace.Col</li>
-        <li class="list-group-item">Encounters: @Model.GridEncounterCount</li>
-        <li class="list-group-item">Characters: @Model.GridCharacterCount</li>
+        <li class="list-group-item">Encounters: <span id="GridEncounterCount">@Model.GridEncounterCount</span></li>
+        <li class="list-group-item">Characters: <span id="GridCharacterCount">@Model.GridCharacterCount</span></li>
         <li class="list-group-item">Accessible: <label class="switch">
             <input onchange="UpdateAccessibility(@Model.GridSpace.Id)" type="checkbox"
                    checked="@Model.GridSpace.Accessible"/>

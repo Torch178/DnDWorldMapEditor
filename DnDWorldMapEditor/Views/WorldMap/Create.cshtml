@@ -5,45 +5,49 @@
     string[] sizes = ["Small", "Medium", "Large"];
 }
 
-<h1>Create</h1>
 
-<h4>WorldMap</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create" enctype="multipart/form-data" method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Name" class="control-label"></label>
-                <input asp-for="Name" class="form-control" />
-                <span asp-validation-for="Name" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Description" class="control-label"></label>
-                <input asp-for="Description" class="form-control" />
-                <span asp-validation-for="Description" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="MapSize" class="control-label"></label>
-                <select asp-for="MapSize" class="form-control">
-                    <option value="">Select Map Size</option>
-                    @foreach (var item in sizes)
-                    {
-                        <option value="@item">@item</option>
-                    }
+<h1 class=" d-flex justify-content-center">Create World Map</h1>
+<div class="container-fluid justify-content-center ">
+    <div class="card">
+        <h4 class="card-header">World Map Info</h4>
+        <div class="row  card-body">
+            <div class="col-md-4 m-2 p-3 ">
+                <form asp-action="Create" enctype="multipart/form-data" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <div class="form-group m-2">
+                        <label asp-for="Name" class="control-label"></label>
+                        <input asp-for="Name" class="form-control" />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+                    <div class="form-group m-2">
+                        <label asp-for="Description" class="control-label"></label>
+                        <input asp-for="Description" class="form-control" />
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
+                    <div class="form-group m-2">
+                        <label asp-for="MapSize" class="control-label"></label>
+                        <select asp-for="MapSize" class="form-control">
+                            <option value="">Select Map Size</option>
+                            @foreach (var item in sizes)
+                            {
+                                <option value="@item">@item</option>
+                            }
 
-                </select>
-                <span asp-validation-for="Description" class="text-danger"></span>
+                        </select>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
+                    <div class="form-group m-2">
+                        <label asp-for="BackgroundImage" class="control-label"></label>
+                        <input asp-for="BackgroundImage" type="file" class="form-control" accept="image/png, image/jpg, image/jpeg, image/svg"/>
+                    </div>
+                    <div class="form-group m-2">
+                        <input type="submit" value="Create" class="btn btn-primary" />
+                    </div>
+                </form>
             </div>
-            <div class="form-group">
-                <label asp-for="BackgroundImage" class="control-label"></label>
-                <input asp-for="BackgroundImage" type="file" class="form-control" accept="image/png, image/jpg, image/jpeg, image/svg"/>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
+        </div>
     </div>
+    
 </div>
 
 <div>

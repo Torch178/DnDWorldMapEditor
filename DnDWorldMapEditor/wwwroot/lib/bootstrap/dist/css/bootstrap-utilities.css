@@ -795,6 +795,10 @@
   top: 50% !important;
 }
 
+.top-25{
+  top: 25% !important;
+}
+
 .top-100 {
   top: 100% !important;
 }
@@ -813,6 +817,10 @@
 
 .start-0 {
   left: 0 !important;
+}
+
+start-25 {
+  left: 25% !important;
 }
 
 .start-50 {

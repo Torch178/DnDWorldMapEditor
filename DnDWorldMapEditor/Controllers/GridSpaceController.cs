@@ -242,8 +242,9 @@ namespace DnDWorldMapEditor.Controllers
 
             _context.GridSpace.Update(gridSpace);
             await _context.SaveChangesAsync();
+            var returnData = "gridSquare-" + gridSpace.Row.ToString() + "-" + gridSpace.Col.ToString() + "," + gridSpace.Accessible.ToString().ToLower();
 
-            return Ok(gridSpaceId);
+            return Ok(returnData);
         }
 
         [Authorize]
@@ -294,8 +295,57 @@ namespace DnDWorldMapEditor.Controllers
             _context.GridEncounter.Update(gridEncounter);
             await _context.SaveChangesAsync();
 
-            return Ok(gridSpace.Id);
+            var results = await GetUpdatedGridEncounterData(gridSpace.Id);
+
+            return Ok(results);
         }
+
+        public async Task<String?> GetUpdatedGridEncounterData(int gridSpaceId)
+        {
+            string results = "";
+            var gridSpace = await _context.GridSpace.FindAsync(gridSpaceId);
+            if (gridSpace != null)
+            {
+                var gridSquareId = "gridSquare-" + gridSpace.Row + "-" + gridSpace.Col;
+                results += gridSquareId + ",";
+            }
+            else
+            {
+                return null;
+            }
+
+            var gridEncounters = await _context.GridEncounter.Where(x => x.GridSpaceId == gridSpaceId).ToListAsync();
+            var completedCount = gridEncounters.Count(x => x.IsCompleted);
+            var gridEncountersTotal = gridEncounters.Count();
+            
+            
+
+            if (gridEncountersTotal <= 0)
+            {
+                results += "No-Encounters,X";
+
+            }
+            else
+            {
+                if (gridEncountersTotal == completedCount)
+                {
+                    results += "All-Completed,";
+                }else if (completedCount == 0)
+                {
+                    results += "None-Completed,";
+                }
+                else
+                {
+                    results += "Partially-Completed,";
+                }
+
+                results += gridEncountersTotal;
+            }
+            
+
+            return results;
+        }
+        
 
         [Authorize]
         public async Task<IActionResult> RemoveGridEncounterFromGridSpace(int gridEncounterId)
@@ -313,7 +363,9 @@ namespace DnDWorldMapEditor.Controllers
             await _context.SaveChangesAsync();
 
 
-            return Ok(gridSpaceId);
+            var results = await GetUpdatedGridEncounterData(gridSpaceId);
+
+            return Ok(results);
         }
 
         [Authorize]

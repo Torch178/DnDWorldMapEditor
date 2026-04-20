@@ -1,0 +1,16 @@
+@model Character
+
+<div class="col">
+
+    <div class="card w-auto h-100">
+        <div class="card-body">
+            <h5 class="card-title">@Model.Name</h5>
+            <p class="card-text text-nowrap overflow-hidden">@Model.Description</p>
+        </div>
+        <div class="card-body">
+            <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a> |
+            <a asp-action="Details" asp-route-id="@Model.Id">Details</a> |
+            <a asp-action="Delete" asp-route-id="@Model.Id">Delete</a>
+        </div>
+    </div>
+</div>

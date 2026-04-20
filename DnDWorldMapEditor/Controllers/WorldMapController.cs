@@ -63,11 +63,67 @@ namespace DnDWorldMapEditor.Controllers
                     _logger.LogError("WorldMap Details not found, id is null\nWorldMap: {wm}", worldMap);
                     return NotFound();
                 }
-                
+
                 var imageFile = Path.Combine("images", "worldMaps", worldMap.BackgroundImage);
                 ViewBag.ImagePath = imageFile;
 
-                return View(worldMap);
+                var statusDictionary = new Dictionary<(int row, int col), string>();
+
+                for (int i = 0; i < worldMap.TotalRows; i++)
+                {
+                    for (int j = 0; j < worldMap.TotalColumns; j++)
+                    {
+                        var gridSpace = await _context.GridSpace
+                            .Where(x => x.WorldMapId == worldMap.Id && x.Row == i && x.Col == j).FirstAsync();
+                        statusDictionary.Add((i, j), "");
+                        if (gridSpace.Accessible)
+                        {
+                            statusDictionary[(i, j)] += "A";
+                        }
+                        else
+                        {
+                            statusDictionary[(i, j)] += "I";
+                        }
+
+                        var gridEncounters = await _context.GridEncounter.Where(x => x.GridSpaceId == gridSpace.Id)
+                            .ToListAsync();
+                        var encounterCount = gridEncounters.Count;
+                        if (encounterCount == 0)
+                        {
+                            statusDictionary[(i, j)] += "N";
+                            statusDictionary[(i, j)] += "N";
+                            
+                        }
+                        else
+                        {
+                            statusDictionary[(i, j)] += "Y";
+                            var completedEncounters = gridEncounters.Where(x => x.IsCompleted == true).ToList();
+                            var completedCount = completedEncounters.Count;
+                            if (completedCount == encounterCount)
+                            {
+                                statusDictionary[(i, j)] += "A";
+                            }
+                            else if (completedCount <= 0)
+                            {
+                                statusDictionary[(i, j)] += "N";
+                            }
+                            else
+                            {
+                                statusDictionary[(i, j)] += "S";
+                            }
+                        }
+                        statusDictionary[(i, j)] += encounterCount.ToString();
+                    }
+                }
+
+                var viewModel = new WorldMapDetailsViewModel()
+                {
+                    WorldMap = worldMap,
+                    Status = statusDictionary
+                };
+
+
+                return View(viewModel);
             }
             catch (Exception ex)
             {
@@ -268,8 +324,8 @@ namespace DnDWorldMapEditor.Controllers
             {
                 return NotFound();
             }
-            
-            
+
+
             return View(worldMap);
         }
 
