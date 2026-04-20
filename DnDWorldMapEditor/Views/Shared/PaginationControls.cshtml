@@ -1,0 +1,14 @@
+@using X.PagedList.Mvc.Core;
+@using X.PagedList;
+
+<div class="container">
+    <div class="d-flex justify-content-center m-3 ">
+        @Html.PagedListPager((IPagedList)ViewBag.pageOfItems, page => Url.Action("Index", new { page = page }),
+            new PagedListRenderOptions
+            {
+                LiElementClasses = new string[] { "page-item" , "m-2", "rounded"},
+                PageClasses = new string[] { "page-link rounded" }
+            })
+    </div>
+    
+</div>

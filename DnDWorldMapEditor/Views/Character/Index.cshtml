@@ -3,6 +3,8 @@
 @{
     ViewData["Title"] = "Index";
 }
+@using X.PagedList.Mvc.Core;
+@using X.PagedList;
 
 <h1>Characters</h1>
 
@@ -10,12 +12,13 @@
     <a asp-action="Create" class="btn btn-primary">Create New</a>
 </p>
 
-<div class="row row-cols-md-3 row-cols-sm-1 g-3">
+<div class="row row-cols-md-3 row-cols-1 g-3">
 
     @{
-        foreach (var character in @Model)
+        foreach (var character in ViewBag.pageOfItems)
         {
-            await Html.RenderPartialAsync("CharacterIndexCard", character);
+            <partial name="CharacterIndexCard" model="character"/>
         }
     }
 </div>
+<partial name="PaginationControls"/>

@@ -8,7 +8,7 @@ public class GridSpace
     public int Col { get; set; }
     public string? History { get; set; }
     public string? Description { get; set; }
-    public bool Accessible { get; set; } = false;
+    public bool Accessible { get; set; } = true;
     public string? Notes { get; set; }
 
     public GridSpace(int worldMapId, int row, int col)
@@ -18,7 +18,7 @@ public class GridSpace
         Col = col;
         History = string.Empty;
         Description = string.Empty;
-        Accessible = false;
+        Accessible = true;
         Notes = string.Empty;
     }
 }

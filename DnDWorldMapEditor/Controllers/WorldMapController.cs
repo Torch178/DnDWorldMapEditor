@@ -7,11 +7,14 @@ using DnDWorldMapEditor.ViewModels;
 using Microsoft.IdentityModel.Tokens;
 using DnDWorldMapEditor.HelperFunctions;
 using Microsoft.AspNetCore.Authorization;
+using X.PagedList.Extensions;
 
 namespace DnDWorldMapEditor.Controllers
 {
+    
     public class WorldMapController : Controller
     {
+        
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _environment;
         private readonly ILogger<WorldMapController> _logger;
@@ -26,13 +29,18 @@ namespace DnDWorldMapEditor.Controllers
 
         // GET: WorldMap
         [Authorize]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int? page)
         {
             try
             {
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 var worldMaps = await _context.WorldMap.Where(x => x.UserId == userId).ToListAsync();
                 _logger.LogInformation("World Map Index Called, World Map Count: {worldMaps.Count}", worldMaps.Count);
+
+                var pageNumber = page ?? 1;
+                var pageOfItems = worldMaps.ToPagedList(pageNumber, Constants.PageSize);
+                ViewBag.pageOfItems = pageOfItems;
+                
                 return View(worldMaps);
             }
             catch (Exception ex)
@@ -165,12 +173,14 @@ namespace DnDWorldMapEditor.Controllers
 
                 if (worldMapVm.BackgroundImage.Length == 0)
                 {
-                    return BadRequest("World Map Background Image cannot be an empty file");
+                    ModelState.AddModelError("BackgroundImage", "World Map Background Image cannot be an empty file");
+                    return View(worldMapVm);
                 }
 
                 if (worldMapVm.Name.IsNullOrEmpty())
                 {
-                    return BadRequest("World Map must have a name.");
+                    ModelState.AddModelError("Name","World Map must have a name.");
+                    return View(worldMapVm);
                 }
 
                 if (User.Identity is { IsAuthenticated: true })
@@ -204,7 +214,8 @@ namespace DnDWorldMapEditor.Controllers
                         newWorldMap.TotalColumns = 10;
                         break;
                     default:
-                        return BadRequest("Invalid Map Size Format. Map Size must be Small, Medium, or Large.");
+                        ModelState.AddModelError("MapSize","Invalid Map Size Format. Map Size must be Small, Medium, or Large.");
+                        return View(worldMapVm);
                 }
 
                 _context.Add(newWorldMap);
@@ -218,13 +229,12 @@ namespace DnDWorldMapEditor.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            return BadRequest(ModelState);
+            return View(worldMapVm);
         }
 
 
         // // GET: WorldMap/Edit/5
         [BindProperty] private WorldMapEditViewModel ViewModel { get; set; }
-
         [Authorize]
         public async Task<IActionResult> Edit(int? id)
         {
@@ -288,7 +298,8 @@ namespace DnDWorldMapEditor.Controllers
                         }
                         else
                         {
-                            return BadRequest("Error: New Background Image uploaded is empty.");
+                            ModelState.AddModelError("NewImage", "Background Image cannot be empty.");
+                            return View(updatedMap);
                         }
                     }
 
@@ -306,7 +317,7 @@ namespace DnDWorldMapEditor.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            return View(worldMap);
+            return View(updatedMap);
         }
 
         // GET: WorldMap/Delete/5

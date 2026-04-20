@@ -28,6 +28,12 @@ footer{
   width: 100vw;
 }
 
+.card-img-top{
+  height: 300px;
+  /*width: 100%;*/
+  object-fit: contain;
+}
+
 .dashboard-card{
   height: 200px;
 }

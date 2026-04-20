@@ -34,9 +34,9 @@
     }
 
     .grid-icon {
-        width: 25px; /* Small fixed width */
-        height: 25px; /* Same height for a circle */
-        border-radius: 50%; /* Makes it perfectly round */
+        width: 25px; 
+        height: 25px; 
+        border-radius: 50%; 
         display: inline-block;
     }
 
@@ -203,7 +203,7 @@
 </div>
 
 <script>
-    var toggleBtn = document.getElementById('collapseToggleButton');
+    let toggleBtn = document.getElementById('collapseToggleButton');
     toggleBtn.addEventListener("click", (e) => {
         if(toggleBtn.innerHTML === "Show"){
             toggleBtn.innerHTML = "Hide"
@@ -211,6 +211,33 @@
             toggleBtn.innerHTML = "Show"
         }
     })
+    
+    let gridSpaces = document.getElementsByClassName('col');
+    for(const element of gridSpaces) {
+        element.addEventListener("click", (e) =>{
+            //debugger;
+            const selectedName = "SelectedGridSpace";
+            const selectedStyle = "1px solid rgb(170, 255, 0)";
+            const neutralStyle = "1px solid rgb(0,0,0)";
+            const selected = document.getElementsByName(selectedName)[0];
+            if(selected){
+                if(selected !== e.target){
+                    selected.style.border = neutralStyle;
+                    selected.setAttribute("name", "");
+                    
+                    e.target.setAttribute("name", selectedName);
+                    e.target.style.border = selectedStyle;
+                }
+                //do nothing
+
+            }else{
+                e.target.setAttribute("name", selectedName);
+                e.target.style.border = selectedStyle;
+            }
+
+        })
+    }
+    
 </script>
 
 

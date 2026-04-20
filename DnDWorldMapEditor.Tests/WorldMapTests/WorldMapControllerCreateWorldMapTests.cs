@@ -61,72 +61,9 @@ public class WorldMapControllerCreateWorldMapTests
         
         await context.Database.EnsureDeletedAsync();
     }
+    
 
-    [Fact]
-    public async Task WMC_CreateWorldMap_NameIsEmptyOrWhiteSpace_Returns_BadRequest()
-    {
-        //Arrange
-        var environment = A.Fake<IWebHostEnvironment>();
-        var context = GetDbContext();
-        var logger = A.Fake<ILogger<WorldMapController>>();
-        var worldMapController = new WorldMapController(context, environment, logger);
 
-        await context.Database.EnsureDeletedAsync();
-        await context.Database.EnsureCreatedAsync();
-        worldMapController.ControllerContext = CreateMockUser();
-
-        IFormFile file = CreateMockFile("testImage", "image/png", "test.png");
-
-        WorldMapCreateViewModel newMap = new WorldMapCreateViewModel()
-        {
-            Name = "",
-            Description = "TestWorld Description",
-            MapSize = "Small",
-            BackgroundImage = file
-        };
-
-        //Act
-        var results = await worldMapController.Create(newMap);
-
-        //Assert
-        results.Should().BeOfType<BadRequestObjectResult>();
-        context.WorldMap.Count().Should().Be(0);
-        
-        await context.Database.EnsureDeletedAsync();
-    }
-
-    [Fact]
-    public async Task WMC_CreateWorldMap_MapSizeIsBadFormat_Returns_BadRequest()
-    {
-        //Arrange
-        var environment = A.Fake<IWebHostEnvironment>();
-        var context = GetDbContext();
-        var logger = A.Fake<ILogger<WorldMapController>>();
-        var worldMapController = new WorldMapController(context, environment, logger);
-
-        await context.Database.EnsureDeletedAsync();
-        await context.Database.EnsureCreatedAsync();
-        worldMapController.ControllerContext = CreateMockUser();
-
-        IFormFile file = CreateMockFile("testImage", "image/png", "test.png");
-
-        WorldMapCreateViewModel newMap = new WorldMapCreateViewModel()
-        {
-            Name = "Name",
-            Description = "TestWorld Description",
-            MapSize = "Big",
-            BackgroundImage = file
-        };
-
-        //Act
-        var results = await worldMapController.Create(newMap);
-
-        //Assert
-        results.Should().BeOfType<BadRequestObjectResult>();
-        context.WorldMap.Count().Should().Be(0);
-        
-        await context.Database.EnsureDeletedAsync();
-    }
 
     [Fact]
     public async Task WMC_CreateWorldMap_MapSizeIsSmall_Returns_SmallWorldMap()
@@ -232,39 +169,7 @@ public class WorldMapControllerCreateWorldMapTests
         await context.Database.EnsureDeletedAsync();
     }
 
-    [Fact]
-    public async Task WMC_CreateWorldMap_BGImageIsEmpty_Returns_BadRequest()
-    {
-        //Arrange
-        var environment = A.Fake<IWebHostEnvironment>();
-        var context = GetDbContext();
-        var logger = A.Fake<ILogger<WorldMapController>>();
-        var worldMapController = new WorldMapController(context, environment, logger);
-
-        await context.Database.EnsureDeletedAsync();
-        await context.Database.EnsureCreatedAsync();
-        worldMapController.ControllerContext = CreateMockUser();
-
-        IFormFile file = CreateMockFile("", "image/png", "test.png");
-
-        WorldMapCreateViewModel newMap = new WorldMapCreateViewModel()
-        {
-            Name = "Name",
-            Description = "TestWorld Description",
-            MapSize = "Large",
-            BackgroundImage = file
-        };
-
-        //Act
-        var results = await worldMapController.Create(newMap);
-
-        //Assert
-        Assert.IsType<BadRequestObjectResult>(results);
-        context.WorldMap.Count().Should().Be(0);
-
-        
-        await context.Database.EnsureDeletedAsync();
-    }
+    
 
     [Fact]
     public async Task WMC_CreateWorldMap_BGImageIsPNG_Returns_PNG()

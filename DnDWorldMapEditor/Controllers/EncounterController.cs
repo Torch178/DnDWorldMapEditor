@@ -7,6 +7,7 @@ using DnDWorldMapEditor.Data;
 using DnDWorldMapEditor.Models;
 using DnDWorldMapEditor.ViewModels;
 using Microsoft.AspNetCore.Authorization;
+using X.PagedList.Extensions;
 
 namespace DnDWorldMapEditor.Controllers
 {
@@ -21,10 +22,14 @@ namespace DnDWorldMapEditor.Controllers
 
         // GET: Encounter
         [Authorize]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int? page)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            return View(await _context.Encounter.Where(x => x.UserId == userId).ToListAsync());
+            var encounters = await _context.Encounter.Where(x => x.UserId == userId).ToListAsync();
+            var pageNumber = page ?? 1;
+            var pageOfItems = encounters.ToPagedList(pageNumber, Constants.PageSize);
+            ViewBag.pageOfItems = pageOfItems;
+            return View();
         }
 
         // GET: Encounter/Details/5
@@ -42,6 +47,10 @@ namespace DnDWorldMapEditor.Controllers
             {
                 return NotFound();
             }
+            
+            
+
+            
 
             return View(encounter);
         }

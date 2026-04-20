@@ -79,7 +79,7 @@ namespace DnDWorldMapEditor.Controllers
                 Tuple<GridCharacter, Character> viewData =
                     new Tuple<GridCharacter, Character>(newGridCharacter, character);
 
-                return PartialView("GridCharacterDetails",viewData);
+                return PartialView("GridCharacterDetails", viewData);
             }
             else
             {
@@ -116,7 +116,8 @@ namespace DnDWorldMapEditor.Controllers
 
                 _logger.LogInformation("Added Encounter: {1} to GridSpace: {0}", encounterId, gridSpaceId);
 
-                Tuple<GridEncounter, Encounter> viewData = new Tuple<GridEncounter, Encounter>(newGridEncounter, encounter );
+                Tuple<GridEncounter, Encounter> viewData =
+                    new Tuple<GridEncounter, Encounter>(newGridEncounter, encounter);
 
                 return PartialView("GridEncounterDetails", viewData);
             }
@@ -164,52 +165,67 @@ namespace DnDWorldMapEditor.Controllers
 
         public async Task<GridSpaceDetailsViewModel?> GetGridSpaceDetailsViewModelData(GridSpace gridSpace)
         {
-            List<GridEncounter> gridEncounters =
-                await _context.GridEncounter.Where(x => x.GridSpaceId == gridSpace.Id).ToListAsync();
-            List<GridCharacter> gridCharacters =
-                await _context.GridCharacter.Where(x => x.GridSpaceId == gridSpace.Id).ToListAsync();
-            List<Encounter> encounters = await _context.Encounter.ToListAsync();
-            List<Character> characters = await _context.Character.ToListAsync();
-
-            List<Tuple<GridEncounter, Encounter>> gridEncounterDetails = new List<Tuple<GridEncounter, Encounter>>();
-            List<Tuple<GridCharacter, Character>> gridCharacterDetails = new List<Tuple<GridCharacter, Character>>();
-
-            foreach (var gridEncounter in gridEncounters)
+            if (User.Identity is { IsAuthenticated: true })
             {
-                Encounter? encounter = encounters.Find(x => x.Id == gridEncounter.EncounterId);
-                if (encounter == null)
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (userId == null)
                 {
                     return null;
                 }
 
-                Tuple<GridEncounter, Encounter> encounterDetails =
-                    new Tuple<GridEncounter, Encounter>(gridEncounter, encounter);
-                gridEncounterDetails.Add(encounterDetails);
-            }
+                List<GridEncounter> gridEncounters =
+                    await _context.GridEncounter.Where(x => x.GridSpaceId == gridSpace.Id).ToListAsync();
+                List<GridCharacter> gridCharacters =
+                    await _context.GridCharacter.Where(x => x.GridSpaceId == gridSpace.Id).ToListAsync();
+                List<Encounter> encounters = await _context.Encounter.Where(x => x.UserId == userId).ToListAsync();
+                List<Character> characters = await _context.Character.Where(x => x.UserId == userId).ToListAsync();
 
-            foreach (var gridCharacter in gridCharacters)
-            {
-                Character? character = characters.Find(x => x.Id == gridCharacter.CharacterId);
-                if (character == null)
+                List<Tuple<GridEncounter, Encounter>>
+                    gridEncounterDetails = new List<Tuple<GridEncounter, Encounter>>();
+                List<Tuple<GridCharacter, Character>>
+                    gridCharacterDetails = new List<Tuple<GridCharacter, Character>>();
+
+                foreach (var gridEncounter in gridEncounters)
                 {
-                    return null;
+                    Encounter? encounter = encounters.Find(x => x.Id == gridEncounter.EncounterId);
+                    if (encounter == null)
+                    {
+                        return null;
+                    }
+
+                    Tuple<GridEncounter, Encounter> encounterDetails =
+                        new Tuple<GridEncounter, Encounter>(gridEncounter, encounter);
+                    gridEncounterDetails.Add(encounterDetails);
                 }
 
-                Tuple<GridCharacter, Character> characterDetails =
-                    new Tuple<GridCharacter, Character>(gridCharacter, character);
-                gridCharacterDetails.Add(characterDetails);
+                foreach (var gridCharacter in gridCharacters)
+                {
+                    Character? character = characters.Find(x => x.Id == gridCharacter.CharacterId);
+                    if (character == null)
+                    {
+                        return null;
+                    }
+
+                    Tuple<GridCharacter, Character> characterDetails =
+                        new Tuple<GridCharacter, Character>(gridCharacter, character);
+                    gridCharacterDetails.Add(characterDetails);
+                }
+
+                GridSpaceDetailsViewModel viewModel = new GridSpaceDetailsViewModel()
+                {
+                    GridSpace = gridSpace,
+                    GridEncounters = gridEncounterDetails,
+                    GridCharacters = gridCharacterDetails,
+                    Encounters = encounters,
+                    Characters = characters
+                };
+
+                return viewModel;
             }
-
-            GridSpaceDetailsViewModel viewModel = new GridSpaceDetailsViewModel()
+            else
             {
-                GridSpace = gridSpace,
-                GridEncounters = gridEncounterDetails,
-                GridCharacters = gridCharacterDetails,
-                Encounters = encounters,
-                Characters = characters
-            };
-
-            return viewModel;
+                return null;
+            }
         }
 
 
@@ -242,7 +258,8 @@ namespace DnDWorldMapEditor.Controllers
 
             _context.GridSpace.Update(gridSpace);
             await _context.SaveChangesAsync();
-            var returnData = "gridSquare-" + gridSpace.Row.ToString() + "-" + gridSpace.Col.ToString() + "," + gridSpace.Accessible.ToString().ToLower();
+            var returnData = "gridSquare-" + gridSpace.Row.ToString() + "-" + gridSpace.Col.ToString() + "," +
+                             gridSpace.Accessible.ToString().ToLower();
 
             return Ok(returnData);
         }
@@ -317,20 +334,19 @@ namespace DnDWorldMapEditor.Controllers
             var gridEncounters = await _context.GridEncounter.Where(x => x.GridSpaceId == gridSpaceId).ToListAsync();
             var completedCount = gridEncounters.Count(x => x.IsCompleted);
             var gridEncountersTotal = gridEncounters.Count();
-            
-            
+
 
             if (gridEncountersTotal <= 0)
             {
                 results += "No-Encounters,X";
-
             }
             else
             {
                 if (gridEncountersTotal == completedCount)
                 {
                     results += "All-Completed,";
-                }else if (completedCount == 0)
+                }
+                else if (completedCount == 0)
                 {
                     results += "None-Completed,";
                 }
@@ -341,11 +357,11 @@ namespace DnDWorldMapEditor.Controllers
 
                 results += gridEncountersTotal;
             }
-            
+
 
             return results;
         }
-        
+
 
         [Authorize]
         public async Task<IActionResult> RemoveGridEncounterFromGridSpace(int gridEncounterId)
